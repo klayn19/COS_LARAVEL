@@ -704,19 +704,30 @@
         function proceedToGame() {
             document.getElementById('mobile-warning-overlay').style.setProperty('display', 'none', 'important');
         }
+
+        function redirectGetQuestionUrl(urlStr) {
+            if (typeof urlStr === 'string' && urlStr.includes('get_question')) {
+                const qIndex = urlStr.indexOf('?');
+                const queryStr = qIndex !== -1 ? urlStr.substring(qIndex) : '';
+                return window.location.origin + '/api/get_question' + queryStr;
+            }
+            return urlStr;
+        }
+
         const originalFetch = window.fetch;
         window.fetch = async function(...args) {
-            if (typeof args[0] === 'string' && args[0].includes('localhost/backend/get_question.php')) {
-                args[0] = args[0].replace('http://localhost/backend/get_question.php', 'http://127.0.0.1:8000/api/get_question');
+            if (args[0]) {
+                args[0] = redirectGetQuestionUrl(args[0]);
             }
             return originalFetch.apply(this, args);
         };
+
         const originalXHR = window.XMLHttpRequest.prototype.open;
-        window.XMLHttpRequest.prototype.open = function(method, url) {
-            if (typeof url === 'string' && url.includes('localhost/backend/get_question.php')) {
-                url = url.replace('http://localhost/backend/get_question.php', 'http://127.0.0.1:8000/api/get_question');
+        window.XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+            if (url) {
+                url = redirectGetQuestionUrl(url);
             }
-            return originalXHR.call(this, method, url);
+            return originalXHR.call(this, method, url, ...rest);
         };
     </script>
     <canvas id="bgCanvas"></canvas>
