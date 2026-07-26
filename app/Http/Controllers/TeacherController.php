@@ -177,6 +177,8 @@ class TeacherController extends Controller
 
         return response()->json([
             'success' => true,
+            'inserted' => count($rows),
+            'skipped' => 0,
             'message' => count($rows) . ' question(s) saved successfully',
         ]);
     }
@@ -190,15 +192,25 @@ class TeacherController extends Controller
         $request->validate([
             'class_id'        => 'nullable|integer',
             'subject'         => 'required|string',
-            'type'            => 'nullable|in:quiz,exam,assessment',
+            'type'            => 'nullable|in:quiz,exam,assessment,prototype',
             'quarter'         => 'nullable|integer|between:1,4',
             'sequence_number' => 'nullable|integer|min:1',
         ]);
 
         $query = DB::table('questions');
 
-        if ($request->filled('class_id')) {
-            $query->where('class_id', $request->class_id);
+        $classId = $request->query('class_id');
+        if (empty($classId) && session('user_id')) {
+            $classStudent = DB::table('class_students')
+                ->where('student_id', session('user_id'))
+                ->first();
+            if ($classStudent) {
+                $classId = $classStudent->class_id;
+            }
+        }
+
+        if ($classId) {
+            $query->where('class_id', $classId);
         } else {
             $query->whereNull('class_id');
         }
@@ -219,6 +231,7 @@ class TeacherController extends Controller
 
         // Avoid repeating recently-seen questions for this student session
         // Unity passes answered IDs as a comma-separated string: ?answered=1,2,5
+        $answeredIds = [];
         if ($request->filled('answered')) {
             $answeredIds = array_filter(
                 array_map('intval', explode(',', $request->answered))
@@ -275,7 +288,7 @@ class TeacherController extends Controller
                   ->orWhere('last_name',  'like', "%{$search}%")
                   ->orWhere('email',      'like', "%{$search}%");
             })
-            ->select('id', 'first_name', 'last_name', 'email')
+            ->select('id', 'first_name', 'last_name', 'email', 'section')
             ->orderBy('last_name')
             ->get();
 

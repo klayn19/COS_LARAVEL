@@ -178,28 +178,19 @@
             box-shadow: 1px 1px 0 var(--gold-dim);
         }
 
-        /* ===== MAIN GAME CONTAINER - FIXED LAYOUT ===== */
+        /* ===== MAIN GAME CONTAINER - FULL SCREEN ===== */
         #game-stage {
             position: fixed;
             inset: 0;
             z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding-top: 70px;  /* clear top bar */
-            padding-bottom: 20px;
         }
 
-        /* Unity wrapper with gothic frame */
+        /* Unity wrapper - full screen on any device */
         .unity-frame {
             position: relative;
             background: #030007;
-            border: 3px solid var(--blue-mid);
-            box-shadow: 0 0 0 1px var(--gold),
-                        0 20px 40px rgba(0, 0, 0, 0.6),
-                        0 0 80px rgba(240, 160, 0, 0.25),
-                        inset 0 0 30px rgba(0, 0, 30, 0.5);
-            max-width: 95vw;
+            width: 100%;
+            height: 100%;
         }
 
         /* Corner gems */
@@ -301,10 +292,10 @@
             pointer-events: none;
         }
 
-        /* footer (fullscreen & build info) */
+        /* footer (fullscreen & build info) — overlays bottom of canvas */
         #unity-footer {
             position: absolute;
-            bottom: -42px;
+            bottom: 0;
             left: 0;
             right: 0;
             height: 38px;
@@ -312,9 +303,8 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 14px;
-            background: rgba(9, 13, 30, 0.92);
+            background: rgba(9, 13, 30, 0.7);
             border-top: 1px solid rgba(240, 192, 0, 0.35);
-            border-bottom: 1px solid rgba(240, 192, 0, 0.15);
             backdrop-filter: blur(4px);
             z-index: 20;
         }
@@ -352,12 +342,8 @@
             cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Crect x='0' y='0' width='4' height='4' fill='%23f0a000'/%3E%3Crect x='0' y='4' width='4' height='4' fill='%23f0a000'/%3E%3Crect x='0' y='8' width='4' height='4' fill='%23f0a000'/%3E%3Crect x='4' y='4' width='4' height='4' fill='%23f0a000'/%3E%3Crect x='8' y='8' width='4' height='4' fill='%23f0a000'/%3E%3C/svg%3E") 0 0, default;
         }
 
-        /* responsive behavior: keep aspect ratio but center */
+        /* responsive behavior */
         @media (max-width: 991px) {
-            .unity-frame {
-                max-width: 95vw;
-                height: auto;
-            }
             #top-bar .realm-title {
                 font-size: 9px;
             }
@@ -376,7 +362,7 @@
             }
         }
 
-        /* ===== MOBILE WARNING OVERLAY ===== */
+        /* ===== MOBILE WARNING OVERLAY - REMOVED ===== */
         #mobile-warning-overlay {
             display: none;
             position: fixed;
@@ -485,14 +471,12 @@
             box-shadow: 1px 1px 0 var(--gold-dim);
         }
 
-        /* Show warning on mobile screens (max-width: 991px or mobile devices) */
-        @media (max-width: 991px) {
-            #mobile-warning-overlay {
-                display: flex;
-            }
+        /* Mobile warning overlay disabled — game runs on all devices */
+        #mobile-warning-overlay {
+            display: none !important;
         }
 
-        /* ===== MOBILE KEYBOARD HELPER BAR ===== */
+        /* Mobile keyboard helper removed */
         #mobile-input-bar {
             display: none;
             position: fixed;
@@ -590,14 +574,7 @@
             box-shadow: 1px 1px 0 var(--gold-dim);
         }
 
-        @media (max-width: 991px) {
-            #mobile-input-bar {
-                display: flex;
-            }
-            #game-stage {
-                padding-bottom: 90px;
-            }
-        }
+        /* mobile-input-bar removed */
 
         /* ===== PORTRAIT ORIENTATION OVERLAY ===== */
         #portrait-rotate-overlay {
@@ -788,17 +765,7 @@
         </div>
     </div>
 
-    <!-- MOBILE KEYBOARD HELPER BAR -->
-    <div id="mobile-input-bar">
-        <div class="mobile-input-header">⌨️ MOBILE KEYBOARD HELPER (TAP IN-GAME TEXTBOX FIRST):</div>
-        <div class="mobile-input-row">
-            <input type="text" id="mobile-text-input" placeholder="Tap here and type your answer..." autocomplete="off" />
-            <div class="mobile-input-buttons">
-                <button id="mobile-btn-backspace" class="mobile-helper-btn btn-backspace">⌫ BACK</button>
-                <button id="mobile-btn-enter" class="mobile-helper-btn btn-enter">ENTER ⚔️</button>
-            </div>
-        </div>
-    </div>
+
 
     <script>
         /* ============================================================
@@ -1034,15 +1001,7 @@
             showBanner: unityShowBanner,
         };
         
-        // force canvas dimensions to avoid distortion
-        if (!/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-            unityCanvas.style.width = "960px";
-            unityCanvas.style.height = "600px";
-        } else {
-            unityCanvas.style.width = "100%";
-            unityCanvas.style.height = "auto";
-            document.querySelector("#unity-container").style.transform = "scale(0.92)";
-        }
+        // Canvas fills the full game-stage via CSS — no fixed sizing needed
         
         document.querySelector("#unity-loading-bar").style.display = "flex";
         
@@ -1068,20 +1027,10 @@
         };
         document.body.appendChild(script);
         
-        // manual resize to keep frame stable
-        window.addEventListener('resize', () => {
-            if (!unityCanvas) return;
-            if (window.innerWidth < 992) {
-                if (!/Mobi/i.test(navigator.userAgent)) unityCanvas.style.transform = "scale(0.96)";
-            } else {
-                unityCanvas.style.transform = "";
-            }
-        });
 
-        /* ============================================================
-           MOBILE KEYBOARD BRIDGE INTERACTION
-           ============================================================ */
-        (function() {
+
+        /* Mobile keyboard bridge removed */
+        (function() { return; // removed
             const mobileInput = document.getElementById('mobile-text-input');
             const btnBackspace = document.getElementById('mobile-btn-backspace');
             const btnEnter = document.getElementById('mobile-btn-enter');

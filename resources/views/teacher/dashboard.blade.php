@@ -1966,7 +1966,10 @@ async function submitQuestions(type) {
       statusEl.style.color = 'var(--green)';
       setTimeout(() => {
         container.innerHTML = '';
-        if (type === 'assessment') { assessmentCount = 0; } else if (type === 'exam') { examCount = 0; } else { quizCount = 0; }
+        if (type === 'assessment') { assessmentCount = 0; }
+        else if (type === 'exam') { examCount = 0; }
+        else if (type === 'prototype') { prototypeCount = 0; }
+        else { quizCount = 0; }
         addQuestion(type);
         document.getElementById(type + 'Count').textContent = 1;
         statusEl.textContent = 'Items: ready for new questions';
