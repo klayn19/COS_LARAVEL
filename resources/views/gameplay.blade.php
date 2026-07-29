@@ -125,14 +125,15 @@
             top: 0;
             left: 0;
             right: 0;
+            height: 44px;
             z-index: 30;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 28px;
-            background: linear-gradient(180deg, rgba(9, 13, 30, 0.98) 0%, rgba(9, 13, 30, 0.6) 70%, transparent 100%);
-            border-bottom: 1px solid rgba(240, 192, 0, 0.25);
-            backdrop-filter: blur(2px);
+            padding: 8px 24px;
+            background: linear-gradient(180deg, rgba(9, 13, 30, 0.98) 0%, rgba(9, 13, 30, 0.85) 100%);
+            border-bottom: 1px solid rgba(240, 192, 0, 0.3);
+            backdrop-filter: blur(4px);
         }
 
         #top-bar .realm-title {
@@ -158,7 +159,7 @@
             color: #0a0e1a;
             background: var(--gold);
             border: none;
-            padding: 10px 18px;
+            padding: 8px 16px;
             text-decoration: none;
             letter-spacing: 0.1em;
             cursor: pointer;
@@ -178,19 +179,33 @@
             box-shadow: 1px 1px 0 var(--gold-dim);
         }
 
-        /* ===== MAIN GAME CONTAINER - FULL SCREEN ===== */
+        /* ===== MAIN GAME CONTAINER - RESPONSIVE STAGE ===== */
         #game-stage {
             position: fixed;
-            inset: 0;
+            top: 44px;
+            bottom: 34px;
+            left: 0;
+            right: 0;
             z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: transparent;
         }
 
-        /* Unity wrapper - full screen on any device */
+        /* Unity wrapper - fits proportionally on phone, tablet, and PC */
         .unity-frame {
             position: relative;
             background: #030007;
-            width: 100%;
-            height: 100%;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.8), 0 0 12px rgba(240, 192, 0, 0.2);
+            border: 1px solid rgba(240, 192, 0, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            max-width: 100%;
+            max-height: 100%;
+            transition: width 0.1s ease, height 0.1s ease;
         }
 
         /* Corner gems */
@@ -221,9 +236,8 @@
         #unity-canvas {
             display: block;
             background: #030007;
-            width: 100%;
-            height: 100%;
-            max-width: 100%;
+            width: 100% !important;
+            height: 100% !important;
         }
 
         /* Loading overlay — pixel perfect */
@@ -292,26 +306,26 @@
             pointer-events: none;
         }
 
-        /* footer (fullscreen & build info) — overlays bottom of canvas */
+        /* footer (fullscreen & build info) */
         #unity-footer {
-            position: absolute;
+            position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 38px;
+            height: 34px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 14px;
-            background: rgba(9, 13, 30, 0.7);
+            padding: 0 16px;
+            background: rgba(9, 13, 30, 0.95);
             border-top: 1px solid rgba(240, 192, 0, 0.35);
             backdrop-filter: blur(4px);
-            z-index: 20;
+            z-index: 30;
         }
 
         #unity-logo-title-footer {
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             background: url("{{ asset('unitygame/TemplateData/unity-logo-dark.png') }}") center/contain no-repeat;
             opacity: 0.7;
         }
@@ -324,11 +338,11 @@
         }
 
         #unity-fullscreen-button {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             cursor: pointer;
             background: url("{{ asset('unitygame/TemplateData/fullscreen-button.png') }}") center/contain no-repeat;
-            opacity: 0.7;
+            opacity: 0.75;
             transition: opacity 0.15s, filter 0.1s;
             filter: sepia(1) saturate(2) hue-rotate(5deg) brightness(1.3);
         }
@@ -348,14 +362,23 @@
                 font-size: 9px;
             }
             .logout-btn {
-                padding: 8px 14px;
+                padding: 6px 12px;
                 font-size: 7px;
             }
         }
 
         @media (max-width: 780px) {
             #top-bar {
-                padding: 10px 16px;
+                height: 38px;
+                padding: 6px 14px;
+            }
+            #unity-footer {
+                height: 30px;
+                padding: 0 10px;
+            }
+            #game-stage {
+                top: 38px;
+                bottom: 30px;
             }
             #unity-progress-bar-empty {
                 max-width: 80vw;
@@ -769,9 +792,14 @@
             <div id="unity-warning"></div>
             
             <div id="unity-footer">
-                <div id="unity-logo-title-footer"></div>
-                <div id="unity-build-title">⚔ CLASH OF SUBJECTS ⚔</div>
-                <div id="unity-fullscreen-button"></div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div id="unity-logo-title-footer"></div>
+                    <div id="unity-build-title">⚔ CLASH OF SUBJECTS ⚔</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button id="fit-toggle-btn" title="Toggle Aspect Mode (Fit / Fill Screen)" onclick="toggleFitMode()" style="background: rgba(240, 192, 0, 0.12); border: 1px solid var(--gold-dim); color: var(--gold); font-family: 'Press Start 2P', monospace; font-size: 7px; padding: 4px 8px; cursor: pointer; border-radius: 2px; box-shadow: 1px 1px 0 var(--gold-dim); transition: all 0.1s;">ASPECT: FIT</button>
+                    <div id="unity-fullscreen-button" title="Full Screen"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -975,7 +1003,68 @@
         }
         spawnEmbers();
         
-        /* ========== UNITY LOADER (FIXED LAYOUT) ========== */
+        /* ========== AUTO-FIT GAMEPLAY CANVAS (PHONE, TABLET, PC) ========== */
+        let fitMode = 'FIT'; // 'FIT' (preserve aspect ratio) or 'STRETCH'
+
+        function fitGameToViewport() {
+            const topBar = document.getElementById('top-bar');
+            const footer = document.getElementById('unity-footer');
+            const container = document.getElementById('unity-container');
+            const gameStage = document.getElementById('game-stage');
+            if (!container || !topBar || !footer || !gameStage) return;
+
+            const topBarH = topBar.offsetHeight || (window.innerWidth <= 780 ? 38 : 44);
+            const footerH = footer.offsetHeight || (window.innerWidth <= 780 ? 30 : 34);
+
+            gameStage.style.top = topBarH + 'px';
+            gameStage.style.bottom = footerH + 'px';
+
+            const availW = gameStage.clientWidth || window.innerWidth;
+            const availH = gameStage.clientHeight || (window.innerHeight - topBarH - footerH);
+
+            if (availW <= 0 || availH <= 0) return;
+
+            if (fitMode === 'STRETCH') {
+                container.style.width = availW + 'px';
+                container.style.height = availH + 'px';
+                return;
+            }
+
+            // Target aspect ratio of 960x600 = 1.6
+            const targetAspect = 960 / 600;
+            const currentAspect = availW / availH;
+
+            let finalW, finalH;
+
+            if (currentAspect > targetAspect) {
+                // Screen is wider than 16:10 aspect ratio (e.g. mobile landscape 20:9, ultrawide)
+                finalH = availH;
+                finalW = availH * targetAspect;
+            } else {
+                // Screen is taller than 16:10 aspect ratio (e.g. tablet, standard screen)
+                finalW = availW;
+                finalH = availW / targetAspect;
+            }
+
+            container.style.width = Math.floor(finalW) + 'px';
+            container.style.height = Math.floor(finalH) + 'px';
+        }
+
+        function toggleFitMode() {
+            fitMode = (fitMode === 'FIT') ? 'STRETCH' : 'FIT';
+            const btn = document.getElementById('fit-toggle-btn');
+            if (btn) btn.innerText = 'ASPECT: ' + fitMode;
+            fitGameToViewport();
+        }
+
+        window.addEventListener('resize', fitGameToViewport);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(fitGameToViewport, 150);
+        });
+        document.addEventListener('DOMContentLoaded', fitGameToViewport);
+        fitGameToViewport();
+        
+        /* ========== UNITY LOADER (RESPONSIVE LAYOUT) ========== */
         const unityCanvas = document.querySelector("#unity-canvas");
         
         function unityShowBanner(msg, type) {
