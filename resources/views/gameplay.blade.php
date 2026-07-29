@@ -499,30 +499,55 @@
             display: none !important;
         }
 
-        /* Mobile keyboard helper removed */
+        /* Mobile keyboard helper overlay */
         #mobile-input-bar {
             display: none;
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 24px);
+            max-width: 580px;
             background: rgba(9, 13, 30, 0.98);
-            border-top: 2px solid var(--gold);
-            padding: 12px 16px;
-            z-index: 999;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--gold);
+            padding: 10px 14px;
+            z-index: 1000;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.9), 0 0 12px var(--gold-glow);
+            border-radius: 6px;
+            backdrop-filter: blur(6px);
             flex-direction: column;
-            gap: 6px;
-            backdrop-filter: blur(4px);
+            gap: 8px;
+        }
+
+        #mobile-input-bar.active {
+            display: flex !important;
         }
 
         .mobile-input-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             font-family: 'Press Start 2P', monospace;
             font-size: 8px;
             color: var(--gold);
             letter-spacing: 0.05em;
             text-shadow: 0 0 6px var(--gold-glow);
-            text-align: left;
+        }
+
+        .close-input-btn {
+            background: rgba(200, 30, 30, 0.2);
+            border: 1px solid #ff4444;
+            color: #ffaaaa;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 2px;
+            transition: all 0.1s;
+        }
+        .close-input-btn:hover {
+            background: #c01020;
+            color: #fff;
         }
 
         .mobile-input-row {
@@ -539,11 +564,11 @@
             color: var(--gold);
             font-family: 'VT323', monospace;
             font-size: 20px;
-            padding: 8px 12px;
+            padding: 6px 12px;
             outline: none;
             box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.8);
             border-radius: 4px;
-            text-transform: none; /* keep original capitalization */
+            text-transform: none;
         }
 
         #mobile-text-input:focus {
@@ -564,10 +589,10 @@
         .mobile-helper-btn {
             font-family: 'Press Start 2P', monospace;
             font-size: 8px;
-            padding: 10px 14px;
+            padding: 8px 12px;
             border: none;
             cursor: pointer;
-            box-shadow: 3px 3px 0 var(--gold-dim);
+            box-shadow: 2px 2px 0 var(--gold-dim);
             transition: all 0.05s steps(2);
             line-height: 1.4;
             font-weight: bold;
@@ -578,6 +603,31 @@
 
         .mobile-helper-btn.btn-backspace {
             background: var(--blue-mid);
+            color: var(--gold);
+            border: 1px solid var(--gold);
+        }
+
+        .mobile-helper-btn.btn-enter {
+            background: var(--gold);
+            color: #0a0e1a;
+        }
+
+        .keyboard-toggle-btn {
+            background: rgba(240, 192, 0, 0.12);
+            border: 1px solid var(--gold-dim);
+            color: var(--gold);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            padding: 4px 8px;
+            cursor: pointer;
+            border-radius: 2px;
+            box-shadow: 1px 1px 0 var(--gold-dim);
+            transition: all 0.1s;
+        }
+        .keyboard-toggle-btn:hover {
+            background: var(--gold);
+            color: #0a0e1a;
+        }
             color: var(--gold);
             border: 1px solid var(--gold);
         }
@@ -767,7 +817,10 @@
     <!-- top bar -->
     <div id="top-bar">
         <div class="realm-title">⚔ CLASH OF SUBJECTS ⚔</div>
-        <a href="{{ route('student.dashboard') }}" class="logout-btn">⛊ BACK TO DASHBOARD ⛊</a>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button class="keyboard-toggle-btn" title="Toggle Onscreen / Touch Keyboard" onclick="toggleMobileKeyboard()">⌨ KEYBOARD</button>
+            <a href="{{ route('student.dashboard') }}" class="logout-btn">⛊ BACK TO DASHBOARD ⛊</a>
+        </div>
     </div>
 
     <!-- main game stage (layout fixed) -->
@@ -796,10 +849,26 @@
                     <div id="unity-logo-title-footer"></div>
                     <div id="unity-build-title">⚔ CLASH OF SUBJECTS ⚔</div>
                 </div>
-                <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button class="keyboard-toggle-btn" title="Toggle Touch Keyboard" onclick="toggleMobileKeyboard()">⌨ KEYBOARD</button>
                     <button id="fit-toggle-btn" title="Toggle Aspect Mode (Fit / Fill Screen)" onclick="toggleFitMode()" style="background: rgba(240, 192, 0, 0.12); border: 1px solid var(--gold-dim); color: var(--gold); font-family: 'Press Start 2P', monospace; font-size: 7px; padding: 4px 8px; cursor: pointer; border-radius: 2px; box-shadow: 1px 1px 0 var(--gold-dim); transition: all 0.1s;">ASPECT: FIT</button>
                     <div id="unity-fullscreen-button" title="Full Screen"></div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOBILE / TOUCH KEYBOARD OVERLAY -->
+    <div id="mobile-input-bar">
+        <div class="mobile-input-header">
+            <span>⌨ TOUCH KEYBOARD INPUT</span>
+            <button class="close-input-btn" onclick="toggleMobileKeyboard(false)">✖ CLOSE</button>
+        </div>
+        <div class="mobile-input-row">
+            <input type="text" id="mobile-text-input" placeholder="Type Room ID or Player Name..." autocomplete="off" autocapitalize="none" spellcheck="false">
+            <div class="mobile-input-buttons">
+                <button id="mobile-btn-backspace" class="mobile-helper-btn btn-backspace">⌫</button>
+                <button id="mobile-btn-enter" class="mobile-helper-btn btn-enter">↵ ENTER</button>
             </div>
         </div>
     </div>
@@ -1129,19 +1198,51 @@
         
 
 
-        /* Mobile keyboard bridge removed */
-        (function() { return; // removed
+        /* ========== MOBILE / TOUCH KEYBOARD BRIDGE ========== */
+        function toggleMobileKeyboard(forceState) {
+            const bar = document.getElementById('mobile-input-bar');
+            const input = document.getElementById('mobile-text-input');
+            if (!bar) return;
+
+            const isCurrentlyActive = bar.classList.contains('active');
+            const newState = (typeof forceState === 'boolean') ? forceState : !isCurrentlyActive;
+
+            if (newState) {
+                bar.classList.add('active');
+                if (input) {
+                    setTimeout(() => {
+                        input.focus();
+                    }, 50);
+                }
+            } else {
+                bar.classList.remove('active');
+                if (input) input.blur();
+            }
+        }
+
+        (function() {
             const mobileInput = document.getElementById('mobile-text-input');
             const btnBackspace = document.getElementById('mobile-btn-backspace');
             const btnEnter = document.getElementById('mobile-btn-enter');
             
             if (!mobileInput || !unityCanvas) return;
 
+            // Automatically open mobile keyboard overlay on canvas touch / click
+            const handleCanvasTouch = () => {
+                // Check if user is on mobile/tablet or touch device
+                const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 991);
+                if (isTouch) {
+                    toggleMobileKeyboard(true);
+                }
+            };
+
+            unityCanvas.addEventListener('touchstart', handleCanvasTouch, { passive: true });
+            unityCanvas.addEventListener('click', handleCanvasTouch);
+
             // Character keyboard event mapping function
             function getKeyCodeAndCode(char) {
                 const upper = char.toUpperCase();
                 
-                // Defaults
                 let keyCode = upper.charCodeAt(0);
                 let keyEventCode = "Key" + upper;
                 
@@ -1155,12 +1256,10 @@
                     return { key: " ", code: "Space", keyCode: 32 };
                 }
                 
-                // Numbers
                 if (char >= "0" && char <= "9") {
                     return { key: char, code: "Digit" + char, keyCode: char.charCodeAt(0) };
                 }
                 
-                // Symbols mapping
                 const symbols = {
                     "-": { code: "Minus", keyCode: 189 },
                     "=": { code: "Equal", keyCode: 187 },
@@ -1179,7 +1278,6 @@
                     return { key: char, code: symbols[char].code, keyCode: symbols[char].keyCode };
                 }
                 
-                // Shifted symbols mapping
                 const shiftedSymbols = {
                     "!": { key: "!", code: "Digit1", keyCode: 49 },
                     "@": { key: "@", code: "Digit2", keyCode: 50 },
@@ -1211,13 +1309,12 @@
                 return { key: char, code: keyEventCode, keyCode: keyCode };
             }
 
-            // Keyboard event simulation function
+            // Keyboard event simulation function targeting canvas, document & window
             function simulateKeyPress(char) {
                 const info = getKeyCodeAndCode(char);
                 const isUpper = /^[A-Z]$/.test(char);
                 const shiftRequired = isUpper || ["!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "+", "{", "}", "|", ":", '"', "<", ">", "?"].includes(char);
                 
-                // Keydown
                 const downEvent = new KeyboardEvent("keydown", {
                     key: info.key,
                     code: info.code,
@@ -1228,7 +1325,6 @@
                     cancelable: true
                 });
                 
-                // Keypress
                 let pressEvent = null;
                 if (char !== "Backspace" && char !== "Enter") {
                     pressEvent = new KeyboardEvent("keypress", {
@@ -1243,7 +1339,6 @@
                     });
                 }
                 
-                // Keyup
                 const upEvent = new KeyboardEvent("keyup", {
                     key: info.key,
                     code: info.code,
@@ -1254,9 +1349,13 @@
                     cancelable: true
                 });
                 
-                unityCanvas.dispatchEvent(downEvent);
-                if (pressEvent) unityCanvas.dispatchEvent(pressEvent);
-                unityCanvas.dispatchEvent(upEvent);
+                const targets = [unityCanvas, document, window];
+                targets.forEach(t => {
+                    if (!t) return;
+                    t.dispatchEvent(downEvent);
+                    if (pressEvent) t.dispatchEvent(pressEvent);
+                    t.dispatchEvent(upEvent);
+                });
             }
 
             let prevVal = '';
@@ -1298,23 +1397,27 @@
             });
 
             // UI helper button actions
-            btnBackspace.addEventListener('click', (e) => {
-                e.preventDefault();
-                simulateKeyPress('Backspace');
-                if (mobileInput.value.length > 0) {
-                    mobileInput.value = mobileInput.value.slice(0, -1);
-                    prevVal = mobileInput.value;
-                }
-                mobileInput.focus();
-            });
+            if (btnBackspace) {
+                btnBackspace.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    simulateKeyPress('Backspace');
+                    if (mobileInput.value.length > 0) {
+                        mobileInput.value = mobileInput.value.slice(0, -1);
+                        prevVal = mobileInput.value;
+                    }
+                    mobileInput.focus();
+                });
+            }
 
-            btnEnter.addEventListener('click', (e) => {
-                e.preventDefault();
-                simulateKeyPress('Enter');
-                mobileInput.value = '';
-                prevVal = '';
-                mobileInput.focus();
-            });
+            if (btnEnter) {
+                btnEnter.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    simulateKeyPress('Enter');
+                    mobileInput.value = '';
+                    prevVal = '';
+                    mobileInput.focus();
+                });
+            }
         })();
     </script>
 </body>
