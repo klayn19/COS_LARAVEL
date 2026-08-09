@@ -212,94 +212,46 @@ class TeacherController extends Controller
             );
         }
 
-        // Multi-level search strategies to locate a question
-        $question = null;
-        $totalQuestionsInPool = 0;
-        $remainingAfterThis = 0;
-        $isPrototype = false;
-
-        // Stage 1: Search by subject + class_id (if present)
-        $stage1Query = DB::table('questions')
+        // 1. Build base query for requested subject & class
+        $baseQuery = DB::table('questions')
             ->whereRaw('LOWER(subject) = ?', [$subjectInput]);
 
         if ($classId) {
-            $stage1Query->where(function($q) use ($classId) {
+            $baseQuery->where(function($q) use ($classId) {
                 $q->where('class_id', $classId)->orWhereNull('class_id');
             });
         }
 
         if ($request->filled('type')) {
-            $stage1Query->where('type', $request->type);
+            $baseQuery->where('type', $request->type);
         }
 
-        $totalQuestionsInPool = (clone $stage1Query)->count();
-        $unansweredQuery = (clone $stage1Query);
+        $totalQuestionsInPool = (clone $baseQuery)->count();
 
-        if (!empty($answeredIds)) {
-            $unansweredQuery->whereNotIn('id', $answeredIds);
-        }
-
-        if ($unansweredQuery->count() > 0) {
-            $remainingAfterThis = max(0, $unansweredQuery->count() - 1);
-            $question = $unansweredQuery->inRandomOrder()->first();
-        } elseif ($totalQuestionsInPool > 0) {
-            // Cycle finished for this pool, reset answered filter
-            $question = (clone $stage1Query)->inRandomOrder()->first();
-            $remainingAfterThis = max(0, $totalQuestionsInPool - 1);
-        }
-
-        // Stage 2: Fallback to subject search ignoring class_id & type filters
-        if (!$question) {
-            $stage2Query = DB::table('questions')
+        // 2. Fallback to subject search without class_id/type if 0 found
+        if ($totalQuestionsInPool === 0) {
+            $baseQuery = DB::table('questions')
                 ->whereRaw('LOWER(subject) = ?', [$subjectInput]);
-
-            $totalQuestionsInPool = (clone $stage2Query)->count();
-            $unansweredStage2 = (clone $stage2Query);
-            if (!empty($answeredIds)) {
-                $unansweredStage2->whereNotIn('id', $answeredIds);
-            }
-
-            if ($unansweredStage2->count() > 0) {
-                $remainingAfterThis = max(0, $unansweredStage2->count() - 1);
-                $question = $unansweredStage2->inRandomOrder()->first();
-            } elseif ($totalQuestionsInPool > 0) {
-                $question = (clone $stage2Query)->inRandomOrder()->first();
-                $remainingAfterThis = max(0, $totalQuestionsInPool - 1);
-            }
+            $totalQuestionsInPool = (clone $baseQuery)->count();
         }
 
-        // Stage 3: Fallback to 'prototype' type questions
-        if (!$question) {
-            $stage3Query = DB::table('questions')->where('type', 'prototype');
-            $totalQuestionsInPool = (clone $stage3Query)->count();
-            $unansweredStage3 = (clone $stage3Query);
-            if (!empty($answeredIds)) {
-                $unansweredStage3->whereNotIn('id', $answeredIds);
-            }
-
-            if ($unansweredStage3->count() > 0) {
-                $remainingAfterThis = max(0, $unansweredStage3->count() - 1);
-                $question = $unansweredStage3->inRandomOrder()->first();
-            } elseif ($totalQuestionsInPool > 0) {
-                $question = (clone $stage3Query)->inRandomOrder()->first();
-                $remainingAfterThis = max(0, $totalQuestionsInPool - 1);
-            }
-            if ($question) {
+        // 3. Fallback to 'prototype' type if still 0 found
+        $isPrototype = false;
+        if ($totalQuestionsInPool === 0) {
+            $baseQuery = DB::table('questions')->where('type', 'prototype');
+            $totalQuestionsInPool = (clone $baseQuery)->count();
+            if ($totalQuestionsInPool > 0) {
                 $isPrototype = true;
             }
         }
 
-        // Stage 4: Fallback to ANY question in DB
-        if (!$question) {
-            $stage4Query = DB::table('questions');
-            $totalQuestionsInPool = (clone $stage4Query)->count();
-            if ($totalQuestionsInPool > 0) {
-                $question = (clone $stage4Query)->inRandomOrder()->first();
-                $remainingAfterThis = max(0, $totalQuestionsInPool - 1);
-            }
+        // 4. Fallback to ANY question in DB if still 0 found
+        if ($totalQuestionsInPool === 0) {
+            $baseQuery = DB::table('questions');
+            $totalQuestionsInPool = (clone $baseQuery)->count();
         }
 
-        if (!$question) {
+        if ($totalQuestionsInPool === 0) {
             return response()->json([
                 'completed'      => true,
                 'cycle_finished' => true,
@@ -307,6 +259,31 @@ class TeacherController extends Controller
             ], 404);
         }
 
+        // Filter out already answered question IDs
+        $unansweredQuery = (clone $baseQuery);
+        if (!empty($answeredIds)) {
+            $unansweredQuery->whereNotIn('id', $answeredIds);
+        }
+
+        $unansweredCount = (clone $unansweredQuery)->count();
+
+        // If player answered all available questions in this pool -> CYCLE COMPLETED!
+        if ($unansweredCount === 0 && !empty($answeredIds)) {
+            return response()->json([
+                'completed'      => true,
+                'cycle_finished' => true,
+                'message'        => 'Question cycle completed!',
+                'total_questions'=> $totalQuestionsInPool,
+            ], 404);
+        }
+
+        $question = $unansweredQuery->inRandomOrder()->first();
+        if (!$question) {
+            // Fallback: pick any random question from pool
+            $question = (clone $baseQuery)->inRandomOrder()->first();
+        }
+
+        $remainingAfterThis = max(0, $unansweredCount - 1);
         $isLast = ($remainingAfterThis === 0);
 
         return response()->json([
