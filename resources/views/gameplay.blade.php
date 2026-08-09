@@ -563,6 +563,245 @@
                 padding: 7px 9px;
             }
         }
+
+        /* ===== QUESTION CYCLE RESULTS MODAL ===== */
+        .results-modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: rgba(3, 0, 7, 0.88);
+            backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .results-modal-backdrop.active {
+            display: flex !important;
+            opacity: 1;
+        }
+
+        .results-modal-card {
+            position: relative;
+            width: 100%;
+            max-width: 540px;
+            background: linear-gradient(135deg, rgba(14, 21, 48, 0.96) 0%, rgba(9, 13, 30, 0.98) 100%);
+            border: 2px solid var(--gold);
+            border-radius: 12px;
+            padding: 28px 24px;
+            box-shadow: 0 0 35px rgba(240, 192, 0, 0.35), 0 20px 50px rgba(0, 0, 0, 0.95), inset 0 0 20px rgba(240, 192, 0, 0.1);
+            text-align: center;
+            animation: modalPopIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes modalPopIn {
+            from { transform: scale(0.85); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .results-modal-card .modal-corner {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--gold);
+            z-index: 2;
+            box-shadow: 0 0 6px var(--gold);
+        }
+        .modal-corner.tl { top: -5px; left: -5px; }
+        .modal-corner.tr { top: -5px; right: -5px; }
+        .modal-corner.bl { bottom: -5px; left: -5px; }
+        .modal-corner.br { bottom: -5px; right: -5px; }
+
+        .modal-close-x {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            background: transparent;
+            border: none;
+            color: rgba(240, 192, 0, 0.6);
+            font-size: 24px;
+            cursor: pointer;
+            line-height: 1;
+            transition: color 0.15s;
+        }
+        .modal-close-x:hover {
+            color: #ff5555;
+        }
+
+        .results-modal-header .header-icon {
+            font-size: 38px;
+            margin-bottom: 6px;
+            filter: drop-shadow(0 0 8px var(--gold));
+            animation: iconPulse 2s infinite ease-in-out;
+        }
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+
+        .results-modal-header h2 {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 13px;
+            color: var(--gold);
+            letter-spacing: 0.08em;
+            text-shadow: 0 0 10px rgba(240, 192, 0, 0.6);
+            margin-bottom: 6px;
+        }
+
+        .results-modal-header .header-subtitle {
+            font-size: 16px;
+            color: var(--text-dim);
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
+        }
+
+        /* Congratulations Banner */
+        .congrats-banner {
+            background: linear-gradient(90deg, rgba(240, 192, 0, 0.15) 0%, rgba(255, 224, 112, 0.3) 50%, rgba(240, 192, 0, 0.15) 100%);
+            border: 1.5px solid var(--gold);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 18px;
+            box-shadow: 0 0 15px rgba(240, 192, 0, 0.25);
+            animation: congratsGlow 2s infinite alternate;
+        }
+        @keyframes congratsGlow {
+            0% { box-shadow: 0 0 10px rgba(240, 192, 0, 0.2); }
+            100% { box-shadow: 0 0 25px rgba(240, 192, 0, 0.6); }
+        }
+
+        .congrats-sparkles {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .congrats-title {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+            color: var(--gold-light);
+            text-shadow: 0 0 8px var(--gold);
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+
+        .congrats-message {
+            font-size: 16px;
+            color: #ffffff;
+            letter-spacing: 0.02em;
+        }
+
+        /* Stats Grid */
+        .results-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(9, 13, 30, 0.75);
+            border: 1px solid rgba(240, 192, 0, 0.3);
+            border-radius: 8px;
+            padding: 10px 8px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+            transition: transform 0.15s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-card .stat-label {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .stat-card .stat-value {
+            font-family: 'VT323', monospace;
+            font-size: 26px;
+            line-height: 1;
+            font-weight: bold;
+        }
+
+        .stat-correct .stat-label { color: #55ff77; }
+        .stat-correct .stat-value { color: #55ff77; text-shadow: 0 0 8px rgba(85, 255, 119, 0.5); }
+        .stat-correct { border-color: rgba(85, 255, 119, 0.4); }
+
+        .stat-mistakes .stat-label { color: #ff5566; }
+        .stat-mistakes .stat-value { color: #ff5566; text-shadow: 0 0 8px rgba(255, 85, 102, 0.5); }
+        .stat-mistakes { border-color: rgba(255, 85, 102, 0.4); }
+
+        .stat-total .stat-label { color: #77ccff; }
+        .stat-total .stat-value { color: #77ccff; text-shadow: 0 0 8px rgba(119, 204, 255, 0.5); }
+        .stat-total { border-color: rgba(119, 204, 255, 0.4); }
+
+        .stat-highscore .stat-label { color: var(--gold); }
+        .stat-highscore .stat-value { color: var(--gold-light); text-shadow: 0 0 10px rgba(240, 192, 0, 0.6); }
+        .stat-highscore { border-color: var(--gold); background: rgba(240, 192, 0, 0.08); }
+
+        /* Action Buttons */
+        .results-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .results-btn {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            padding: 10px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            transition: all 0.15s ease;
+            line-height: 1;
+        }
+
+        .btn-replay {
+            background: var(--gold);
+            color: #090d1e;
+            border: 1px solid #ffe070;
+            box-shadow: 0 0 12px rgba(240, 192, 0, 0.4);
+            font-weight: bold;
+        }
+        .btn-replay:hover {
+            background: #ffe070;
+            transform: translateY(-2px);
+            box-shadow: 0 0 18px rgba(240, 192, 0, 0.7);
+        }
+
+        .btn-dashboard {
+            background: rgba(30, 42, 80, 0.9);
+            color: var(--gold);
+            border: 1px solid rgba(240, 192, 0, 0.4);
+        }
+        .btn-dashboard:hover {
+            background: rgba(45, 60, 110, 0.95);
+            border-color: var(--gold);
+            transform: translateY(-2px);
+        }
+
+        .btn-close {
+            background: rgba(139, 26, 26, 0.8);
+            color: #ffaaaa;
+            border: 1px solid #ff4444;
+        }
+        .btn-close:hover {
+            background: rgba(180, 30, 30, 0.9);
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
@@ -587,31 +826,107 @@
         <i class="fas fa-expand"></i> TAP HERE TO ENTER FULLSCREEN ARENA
     </div>
 
-    <!-- NETWORK REQUEST INTERCEPTOR -->
+    <!-- NETWORK REQUEST INTERCEPTOR & CYCLE END DETECTOR -->
     <script>
-        function redirectGetQuestionUrl(urlStr) {
-            if (typeof urlStr === 'string' && urlStr.includes('get_question')) {
-                const qIndex = urlStr.indexOf('?');
-                const queryStr = qIndex !== -1 ? urlStr.substring(qIndex) : '';
-                return window.location.origin + '/api/get_question' + queryStr;
+        let isLastQuestionReached = false;
+        let isCycleModalShown = false;
+
+        function redirectGameApiUrl(urlStr) {
+            if (typeof urlStr === 'string') {
+                if (urlStr.includes('get_question')) {
+                    const qIndex = urlStr.indexOf('?');
+                    const queryStr = qIndex !== -1 ? urlStr.substring(qIndex) : '';
+                    return window.location.origin + '/api/get_question' + queryStr;
+                }
+                if (urlStr.includes('save_score')) {
+                    const qIndex = urlStr.indexOf('?');
+                    const queryStr = qIndex !== -1 ? urlStr.substring(qIndex) : '';
+                    return window.location.origin + '/api/save_score' + queryStr;
+                }
             }
             return urlStr;
+        }
+
+        async function handleCycleCompletedEvent(data) {
+            if (isCycleModalShown) return;
+
+            // Try to fetch student's overall high score if missing
+            if (!data || data.highest_percent === undefined) {
+                try {
+                    const res = await originalFetch(window.location.origin + '/api/student_high_score');
+                    const hsData = await res.json();
+                    if (hsData && hsData.success) {
+                        data = data || {};
+                        data.highest_percent = hsData.highest_percent;
+                        data.highest_correct = hsData.highest_correct;
+                    }
+                } catch(e) {}
+            }
+            
+            isCycleModalShown = true;
+            showQuestionResultsModal(data || {});
+        }
+
+        function handleQuestionResponseData(urlStr, status, data) {
+            if (urlStr.includes('save_score')) {
+                if (data && (data.success || data.correct !== undefined)) {
+                    handleCycleCompletedEvent(data);
+                }
+            } else if (urlStr.includes('get_question')) {
+                if (status === 404 || (data && (data.completed || data.cycle_finished))) {
+                    // No more questions left in pool -> Cycle Finished!
+                    handleCycleCompletedEvent(data || {});
+                } else if (data && data.is_last) {
+                    isLastQuestionReached = true;
+                    console.log('⚔️ Last question in cycle reached!');
+                }
+            }
         }
 
         const originalFetch = window.fetch;
         window.fetch = async function(...args) {
             if (args[0]) {
-                args[0] = redirectGetQuestionUrl(args[0]);
+                args[0] = redirectGameApiUrl(args[0]);
             }
-            return originalFetch.apply(this, args);
+            const response = await originalFetch.apply(this, args);
+            try {
+                const urlStr = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url ? args[0].url : '');
+                if (urlStr.includes('save_score') || urlStr.includes('get_question')) {
+                    const clone = response.clone();
+                    clone.json().then(data => {
+                        handleQuestionResponseData(urlStr, response.status, data);
+                    }).catch(() => {
+                        if (response.status === 404 && urlStr.includes('get_question')) {
+                            handleCycleCompletedEvent({ completed: true });
+                        }
+                    });
+                }
+            } catch(e) {}
+            return response;
         };
 
         const originalXHR = window.XMLHttpRequest.prototype.open;
+        const originalXHRSend = window.XMLHttpRequest.prototype.send;
+
         window.XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+            this._reqUrl = url;
             if (url) {
-                url = redirectGetQuestionUrl(url);
+                url = redirectGameApiUrl(url);
             }
             return originalXHR.call(this, method, url, ...rest);
+        };
+
+        window.XMLHttpRequest.prototype.send = function(...args) {
+            this.addEventListener('load', function() {
+                try {
+                    if (this._reqUrl && (this._reqUrl.includes('save_score') || this._reqUrl.includes('get_question'))) {
+                        let data = null;
+                        try { data = JSON.parse(this.responseText); } catch(e) {}
+                        handleQuestionResponseData(this._reqUrl, this.status, data);
+                    }
+                } catch(e) {}
+            });
+            return originalXHRSend.apply(this, args);
         };
     </script>
 
@@ -683,6 +998,64 @@
             <button id="mobile-btn-backspace" class="mobile-helper-btn btn-backspace" title="Backspace">⌫</button>
             <button id="mobile-btn-enter" class="mobile-helper-btn btn-enter" title="Enter">↵</button>
             <button class="mobile-helper-btn btn-close" onclick="toggleMobileKeyboard(false)" title="Close Keyboard">✖</button>
+        </div>
+    </div>
+
+    <!-- QUESTION CYCLE COMPLETED RESULTS MODAL -->
+    <div id="results-modal-overlay" class="results-modal-backdrop">
+        <div class="results-modal-card">
+            <div class="modal-corner tl"></div>
+            <div class="modal-corner tr"></div>
+            <div class="modal-corner bl"></div>
+            <div class="modal-corner br"></div>
+            
+            <button class="modal-close-x" onclick="closeResultsModal()">&times;</button>
+            
+            <div class="results-modal-header">
+                <div class="header-icon">⚔️</div>
+                <h2>QUESTION CYCLE COMPLETED</h2>
+                <p class="header-subtitle">ARENA SUMMARY & HIGHEST POINTS</p>
+            </div>
+
+            <!-- Congratulations Banner -->
+            <div id="results-congrats-banner" class="congrats-banner">
+                <div class="congrats-sparkles">✨ 🏆 ✨</div>
+                <div id="results-congrats-title" class="congrats-title">NEW HIGHEST SCORE RECORD!</div>
+                <div id="results-congrats-message" class="congrats-message">Congratulations! You achieved the highest point!</div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="results-stats-grid">
+                <div class="stat-card stat-correct">
+                    <div class="stat-label"><i class="fas fa-check-circle"></i> CORRECT</div>
+                    <div id="results-stat-correct" class="stat-value">0</div>
+                </div>
+                <div class="stat-card stat-mistakes">
+                    <div class="stat-label"><i class="fas fa-times-circle"></i> MISTAKES</div>
+                    <div id="results-stat-mistakes" class="stat-value">0</div>
+                </div>
+                <div class="stat-card stat-total">
+                    <div class="stat-label"><i class="fas fa-list-ol"></i> TOTAL SCORE</div>
+                    <div id="results-stat-score" class="stat-value">0 / 0</div>
+                </div>
+                <div class="stat-card stat-highscore">
+                    <div class="stat-label"><i class="fas fa-trophy"></i> HIGHEST POINT</div>
+                    <div id="results-stat-highscore" class="stat-value">0%</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="results-actions">
+                <button class="results-btn btn-replay" onclick="replayQuestionCycle()">
+                    <i class="fas fa-redo-alt"></i> PLAY AGAIN
+                </button>
+                <a href="{{ route('student.dashboard') }}" class="results-btn btn-dashboard">
+                    <i class="fas fa-tachometer-alt"></i> DASHBOARD
+                </a>
+                <button class="results-btn btn-close" onclick="closeResultsModal()">
+                    <i class="fas fa-times"></i> CLOSE
+                </button>
+            </div>
         </div>
     </div>
 
@@ -1222,6 +1595,83 @@
                 });
             }
         })();
+
+        /* ============================================================
+           QUESTION CYCLE RESULTS & HIGH SCORE DISPLAY CONTROLLER
+           ============================================================ */
+        function showQuestionResultsModal(data) {
+            const backdrop = document.getElementById('results-modal-overlay');
+            if (!backdrop) return;
+
+            data = data || {};
+            const correct = parseInt(data.correct !== undefined ? data.correct : 0);
+            const mistakes = parseInt(data.mistakes !== undefined ? data.mistakes : (data.total ? Math.max(0, data.total - correct) : 0));
+            const total = parseInt(data.total !== undefined ? data.total : (correct + mistakes));
+            const percent = data.percent !== undefined ? parseFloat(data.percent) : (total > 0 ? Math.round((correct / total) * 100) : 0);
+            const highestPercent = data.highest_percent !== undefined ? parseFloat(data.highest_percent) : Math.max(percent, 0);
+            const isHighScore = Boolean(data.is_new_high_score || (highestPercent > 0 && percent >= highestPercent));
+
+            // Set Stat Values
+            const elCorrect = document.getElementById('results-stat-correct');
+            const elMistakes = document.getElementById('results-stat-mistakes');
+            const elScore = document.getElementById('results-stat-score');
+            const elHighScore = document.getElementById('results-stat-highscore');
+
+            if (elCorrect) elCorrect.innerText = correct;
+            if (elMistakes) elMistakes.innerText = mistakes;
+            if (elScore) elScore.innerText = `${correct} / ${total} (${percent}%)`;
+            if (elHighScore) elHighScore.innerText = `${highestPercent}%`;
+
+            // Configure Congratulations Banner
+            const congratsBanner = document.getElementById('results-congrats-banner');
+            const congratsTitle = document.getElementById('results-congrats-title');
+            const congratsMessage = document.getElementById('results-congrats-message');
+
+            if (congratsBanner && congratsTitle && congratsMessage) {
+                if (isHighScore) {
+                    congratsBanner.style.display = 'block';
+                    congratsBanner.style.background = 'linear-gradient(90deg, rgba(240, 192, 0, 0.25) 0%, rgba(255, 224, 112, 0.45) 50%, rgba(240, 192, 0, 0.25) 100%)';
+                    congratsBanner.style.borderColor = 'var(--gold)';
+                    congratsTitle.innerText = '🎉 CONGRATULATIONS ON YOUR HIGHEST POINT! 🎉';
+                    congratsMessage.innerText = `Outstanding victory! You set a new personal record of ${percent}% in the arena!`;
+                } else if (percent >= 70) {
+                    congratsBanner.style.display = 'block';
+                    congratsBanner.style.background = 'linear-gradient(90deg, rgba(30, 80, 50, 0.35) 0%, rgba(50, 140, 80, 0.5) 50%, rgba(30, 80, 50, 0.35) 100%)';
+                    congratsBanner.style.borderColor = '#55ff77';
+                    congratsTitle.innerText = '⚔️ GREAT JOB, WARRIOR! ⚔️';
+                    congratsMessage.innerText = `You scored ${percent}%! Keep training to match or surpass your highest score of ${highestPercent}%!`;
+                } else {
+                    congratsBanner.style.display = 'block';
+                    congratsBanner.style.background = 'linear-gradient(90deg, rgba(80, 30, 30, 0.35) 0%, rgba(130, 40, 40, 0.5) 50%, rgba(80, 30, 30, 0.35) 100%)';
+                    congratsBanner.style.borderColor = '#ff5566';
+                    congratsTitle.innerText = '🛡️ QUESTION CYCLE COMPLETED 🛡️';
+                    congratsMessage.innerText = `You completed the cycle with ${correct} correct and ${mistakes} mistake(s). Try again to reach your peak!`;
+                }
+            }
+
+            backdrop.classList.add('active');
+        }
+
+        function closeResultsModal() {
+            const backdrop = document.getElementById('results-modal-overlay');
+            if (backdrop) backdrop.classList.remove('active');
+        }
+
+        function replayQuestionCycle() {
+            closeResultsModal();
+            window.location.reload();
+        }
+
+        // Global function for Unity WebGL / external JS callers
+        window.showQuestionResultsModal = showQuestionResultsModal;
+        window.onQuestionCycleFinished = function(correct, total, mistakes, subject) {
+            showQuestionResultsModal({
+                correct: correct,
+                total: total,
+                mistakes: mistakes,
+                subject: subject
+            });
+        };
     </script>
 </body>
 </html>

@@ -229,6 +229,9 @@ class TeacherController extends Controller
             $query->where('sequence_number', $request->sequence_number);
         }
 
+        // Count total matching questions before filtering answered
+        $totalQuestionsInPool = (clone $query)->count();
+
         // Avoid repeating recently-seen questions for this student session
         // Unity passes answered IDs as a comma-separated string: ?answered=1,2,5
         $answeredIds = [];
@@ -241,33 +244,47 @@ class TeacherController extends Controller
             }
         }
 
+        $remainingCount = (clone $query)->count();
         $question = $query->inRandomOrder()->first();
 
+        $isPrototype = false;
         // If no regular question found, try to fetch a prototype question
         if (!$question) {
             $prototypeQuery = DB::table('questions')->where('type', 'prototype');
+            $totalQuestionsInPool = (clone $prototypeQuery)->count();
             
             if ($request->filled('answered') && !empty($answeredIds)) {
                 $prototypeQuery->whereNotIn('id', $answeredIds);
             }
 
+            $remainingCount = (clone $prototypeQuery)->count();
             $question = $prototypeQuery->inRandomOrder()->first();
+            $isPrototype = true;
         }
 
         if (!$question) {
             return response()->json([
-                'error' => 'No questions found for this class/subject/quarter. Ask your teacher to add questions.',
+                'completed'      => true,
+                'cycle_finished' => true,
+                'error'          => 'No questions found for this class/subject/quarter. Ask your teacher to add questions.',
             ], 404);
         }
 
+        $remainingAfterThis = max(0, $remainingCount - 1);
+        $isLast = ($remainingAfterThis === 0);
+
         return response()->json([
-            'id'       => $question->id,
-            'question' => $question->question,
-            'A'        => $question->choice_a,
-            'B'        => $question->choice_b,
-            'C'        => $question->choice_c,
-            'D'        => $question->choice_d,
-            'answer'   => $question->answer,
+            'id'              => $question->id,
+            'question'        => $question->question,
+            'A'               => $question->choice_a,
+            'B'               => $question->choice_b,
+            'C'               => $question->choice_c,
+            'D'               => $question->choice_d,
+            'answer'          => $question->answer,
+            'is_last'         => $isLast,
+            'remaining'       => $remainingAfterThis,
+            'total_questions' => $totalQuestionsInPool,
+            'is_prototype'    => $isPrototype,
         ]);
     }
 
