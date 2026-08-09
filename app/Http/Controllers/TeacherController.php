@@ -256,7 +256,16 @@ class TeacherController extends Controller
                 'completed'      => true,
                 'cycle_finished' => true,
                 'error'          => 'No questions found in database. Ask your teacher to add questions.',
-            ], 404);
+                'is_last'        => true,
+                'remaining'      => 0,
+                'id'             => 0,
+                'question'       => 'No questions available.',
+                'A'              => '',
+                'B'              => '',
+                'C'              => '',
+                'D'              => '',
+                'answer'         => '',
+            ], 200);
         }
 
         // Filter out already answered question IDs
@@ -274,7 +283,16 @@ class TeacherController extends Controller
                 'cycle_finished' => true,
                 'message'        => 'Question cycle completed!',
                 'total_questions'=> $totalQuestionsInPool,
-            ], 404);
+                'is_last'        => true,
+                'remaining'      => 0,
+                'id'             => 0,
+                'question'       => 'Cycle Finished!',
+                'A'              => '',
+                'B'              => '',
+                'C'              => '',
+                'D'              => '',
+                'answer'         => '',
+            ], 200);
         }
 
         $question = $unansweredQuery->inRandomOrder()->first();

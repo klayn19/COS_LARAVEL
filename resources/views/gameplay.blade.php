@@ -828,6 +828,8 @@
 
     <!-- NETWORK REQUEST INTERCEPTOR & SCORE TRACKER -->
     <script>
+        let isCycleFinishedHandled = false;
+
         function redirectGameApiUrl(urlStr) {
             if (typeof urlStr === 'string') {
                 if (urlStr.includes('get_question')) {
@@ -844,6 +846,45 @@
             return urlStr;
         }
 
+        async function handleCycleCompletedEvent(data) {
+            if (isCycleFinishedHandled) return;
+            isCycleFinishedHandled = true;
+
+            if (!data || data.correct === undefined) {
+                try {
+                    const res = await originalFetch(window.location.origin + '/api/student_high_score');
+                    const hsData = await res.json();
+                    if (hsData && hsData.success) {
+                        data = data || {};
+                        data.correct = hsData.highest_correct || 0;
+                        data.total = hsData.highest_correct || 1;
+                        data.percent = hsData.highest_percent || 0;
+                        data.highest_percent = hsData.highest_percent || 0;
+                    }
+                } catch(e) {}
+            }
+            showQuestionResultsModal(data || { force_show: true });
+        }
+
+        function processApiResponse(urlStr, data) {
+            if (!urlStr || typeof urlStr !== 'string') return;
+
+            if (urlStr.includes('save_score')) {
+                if (data && (data.success || data.correct !== undefined)) {
+                    isCycleFinishedHandled = true;
+                    showQuestionResultsModal(data);
+                }
+            } else if (urlStr.includes('get_question')) {
+                if (data && (data.completed || data.cycle_finished)) {
+                    setTimeout(() => {
+                        if (!isCycleFinishedHandled) {
+                            handleCycleCompletedEvent(data);
+                        }
+                    }, 800);
+                }
+            }
+        }
+
         const originalFetch = window.fetch;
         window.fetch = async function(...args) {
             if (args[0]) {
@@ -852,13 +893,11 @@
             const response = await originalFetch.apply(this, args);
             try {
                 const urlStr = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url ? args[0].url : '');
-                if (urlStr.includes('save_score')) {
+                if (urlStr.includes('save_score') || urlStr.includes('get_question')) {
                     const clone = response.clone();
                     clone.json().then(data => {
-                        if (data && (data.success || data.correct !== undefined)) {
-                            showQuestionResultsModal(data);
-                        }
-                    }).catch(e => console.log('Score parse error:', e));
+                        processApiResponse(urlStr, data);
+                    }).catch(e => console.log('Response parse error:', e));
                 }
             } catch(e) {}
             return response;
@@ -878,12 +917,10 @@
         window.XMLHttpRequest.prototype.send = function(...args) {
             this.addEventListener('load', function() {
                 try {
-                    if (this._reqUrl && this._reqUrl.includes('save_score')) {
+                    if (this._reqUrl && (this._reqUrl.includes('save_score') || this._reqUrl.includes('get_question'))) {
                         let data = null;
                         try { data = JSON.parse(this.responseText); } catch(e) {}
-                        if (data && (data.success || data.correct !== undefined)) {
-                            showQuestionResultsModal(data);
-                        }
+                        processApiResponse(this._reqUrl, data);
                     }
                 } catch(e) {}
             });
