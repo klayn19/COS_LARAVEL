@@ -3,10 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, viewport-fit=cover">
     <title>Clash of Subjects | The Arena</title>
     <link rel="shortcut icon" href="{{ asset('unitygame/TemplateData/favicon.ico') }}">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -14,17 +15,19 @@
             box-sizing: border-box;
             image-rendering: pixelated;
             image-rendering: crisp-edges;
+            -webkit-tap-highlight-color: transparent;
         }
 
         :root {
             --gold: #f0c030;
+            --gold-light: #ffe070;
             --gold-dim: #7a6000;
-            --gold-glow: rgba(240,192,0,0.3);
+            --gold-glow: rgba(240, 192, 0, 0.4);
             --blue-dark: #0e1530;
             --blue-mid: #1e2a50;
             --blue-deep: #090d1e;
             --crimson: #8b1a1a;
-            --text-dim: rgba(180,200,255,0.6);
+            --text-dim: rgba(180, 200, 255, 0.6);
         }
 
         html, body {
@@ -33,13 +36,14 @@
             overflow: hidden;
             background: #030007;
             font-family: 'VT323', monospace;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         /* ===== ANIMATED PIXEL BACKGROUND ===== */
         #bgCanvas {
             position: fixed;
-            top: 0;
-            left: 0;
+            inset: 0;
             width: 100%;
             height: 100%;
             z-index: 0;
@@ -53,7 +57,7 @@
             pointer-events: none;
             background: repeating-linear-gradient(0deg,
                 transparent, transparent 2px,
-                rgba(0, 0, 0, 0.15) 2px, rgba(0, 0, 0, 0.15) 4px);
+                rgba(0, 0, 0, 0.12) 2px, rgba(0, 0, 0, 0.12) 4px);
         }
 
         .vignette {
@@ -61,10 +65,10 @@
             inset: 0;
             z-index: 3;
             pointer-events: none;
-            background: radial-gradient(ellipse at center, transparent 35%, rgba(0, 0, 0, 0.9) 100%);
+            background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.85) 100%);
         }
 
-        /* ===== EMBERS ===== */
+        /* ===== ATMOSPHERIC EMBERS & BATS ===== */
         .embers {
             position: fixed;
             inset: 0;
@@ -85,7 +89,6 @@
             100% { opacity: 0; transform: translate(var(--ex), var(--ey)) scale(0.3); }
         }
 
-        /* ===== BATS ===== */
         .bat-wrap {
             position: fixed;
             z-index: 4;
@@ -119,73 +122,99 @@
         .bat-sprite::before { left: 0; }
         .bat-sprite::after { right: 0; transform: scaleX(-1); }
 
-        /* ===== TOP BAR ===== */
-        #top-bar {
+        /* ===== SLEEK FLOATING CYBER HUD ===== */
+        #hud-container {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 44px;
-            z-index: 30;
+            top: 10px;
+            left: 12px;
+            right: 12px;
+            z-index: 50;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 8px 24px;
-            background: linear-gradient(180deg, rgba(9, 13, 30, 0.98) 0%, rgba(9, 13, 30, 0.85) 100%);
-            border-bottom: 1px solid rgba(240, 192, 0, 0.3);
-            backdrop-filter: blur(4px);
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
 
-        #top-bar .realm-title {
-            font-family: 'Press Start 2P', monospace;
-            font-size: 11px;
-            color: var(--gold);
-            letter-spacing: 0.12em;
-            text-shadow: 0 0 12px rgba(240, 192, 0, 0.6);
+        #hud-container.hidden {
+            opacity: 0;
+            transform: translateY(-25px);
+            pointer-events: none !important;
+        }
+
+        .hud-group {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
+            pointer-events: auto;
         }
 
-        #top-bar .realm-title::before {
-            content: '⚔️';
-            font-size: 16px;
-            filter: drop-shadow(0 0 4px gold);
+        .hud-title-badge {
+            background: rgba(9, 13, 30, 0.85);
+            border: 1.5px solid rgba(240, 192, 0, 0.5);
+            border-radius: 6px;
+            padding: 6px 12px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6), 0 0 10px rgba(240, 192, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 9px;
+            color: var(--gold);
+            text-shadow: 0 0 6px rgba(240, 192, 0, 0.5);
         }
 
-        .logout-btn {
+        .hud-btn {
+            background: rgba(9, 13, 30, 0.85);
+            border: 1.5px solid rgba(240, 192, 0, 0.5);
+            color: var(--gold);
             font-family: 'Press Start 2P', monospace;
             font-size: 8px;
-            color: #0a0e1a;
-            background: var(--gold);
-            border: none;
-            padding: 8px 16px;
-            text-decoration: none;
-            letter-spacing: 0.1em;
+            padding: 7px 11px;
+            border-radius: 6px;
             cursor: pointer;
-            display: inline-block;
-            box-shadow: 3px 3px 0 var(--gold-dim);
-            transition: all 0.07s steps(2);
-            line-height: 1.4;
-            font-weight: bold;
-        }
-        .logout-btn:hover {
-            background: #ffe070;
-            box-shadow: 5px 5px 0 var(--gold-dim);
-            transform: translate(-1px, -1px);
-        }
-        .logout-btn:active {
-            transform: translate(2px, 2px);
-            box-shadow: 1px 1px 0 var(--gold-dim);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 0 6px rgba(240, 192, 0, 0.1);
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            line-height: 1;
         }
 
-        /* ===== MAIN GAME CONTAINER - RESPONSIVE STAGE ===== */
+        .hud-btn:hover {
+            background: var(--gold);
+            color: #090d1e;
+            border-color: #ffe050;
+            box-shadow: 0 0 15px rgba(240, 192, 0, 0.6);
+            transform: translateY(-1px);
+        }
+
+        .hud-btn:active {
+            transform: translateY(1px);
+        }
+
+        .hud-btn.active {
+            background: rgba(240, 192, 0, 0.25);
+            border-color: var(--gold);
+            box-shadow: 0 0 12px rgba(240, 192, 0, 0.4);
+        }
+
+        .hud-toggle-trigger {
+            position: fixed;
+            top: 10px;
+            right: 12px;
+            z-index: 51;
+            display: none;
+            pointer-events: auto;
+        }
+
+        /* ===== MAIN GAME STAGE (FULLSCREEN MAXIMIZED) ===== */
         #game-stage {
             position: fixed;
-            top: 44px;
-            bottom: 34px;
-            left: 0;
-            right: 0;
+            inset: 0;
             z-index: 10;
             display: flex;
             align-items: center;
@@ -194,43 +223,43 @@
             background: transparent;
         }
 
-        /* Unity wrapper - fits proportionally on phone, tablet, and PC */
+        /* Unity Frame Container */
         .unity-frame {
             position: relative;
             background: #030007;
-            box-shadow: 0 0 25px rgba(0, 0, 0, 0.8), 0 0 12px rgba(240, 192, 0, 0.2);
+            box-shadow: 0 0 35px rgba(0, 0, 0, 0.9), 0 0 15px rgba(240, 192, 0, 0.25);
             border: 1px solid rgba(240, 192, 0, 0.35);
             display: flex;
             align-items: center;
             justify-content: center;
             max-width: 100%;
             max-height: 100%;
-            transition: width 0.1s ease, height 0.1s ease;
+            transition: width 0.12s ease-out, height 0.12s ease-out;
         }
 
-        /* Corner gems */
+        /* Pixel corner gems */
         .unity-frame .corner {
             position: absolute;
-            width: 14px;
-            height: 14px;
+            width: 12px;
+            height: 12px;
             background: var(--gold);
             z-index: 20;
-            box-shadow: 0 0 6px var(--gold);
+            box-shadow: 0 0 8px var(--gold);
         }
-        .corner.tl { top: -6px; left: -6px; }
-        .corner.tr { top: -6px; right: -6px; }
-        .corner.bl { bottom: -6px; left: -6px; }
-        .corner.br { bottom: -6px; right: -6px; }
+        .corner.tl { top: -5px; left: -5px; }
+        .corner.tr { top: -5px; right: -5px; }
+        .corner.bl { bottom: -5px; left: -5px; }
+        .corner.br { bottom: -5px; right: -5px; }
 
         .unity-top-gold {
             position: absolute;
             top: -2px;
-            left: 12px;
-            right: 12px;
+            left: 10px;
+            right: 10px;
             height: 2px;
-            background: linear-gradient(90deg, transparent, var(--gold), var(--gold), transparent);
+            background: linear-gradient(90deg, transparent, var(--gold), var(--gold-light), var(--gold), transparent);
             z-index: 19;
-            box-shadow: 0 0 4px gold;
+            box-shadow: 0 0 6px gold;
         }
 
         #unity-canvas {
@@ -238,6 +267,7 @@
             background: #030007;
             width: 100% !important;
             height: 100% !important;
+            outline: none;
         }
 
         /* Loading overlay — pixel perfect */
@@ -250,16 +280,22 @@
             justify-content: center;
             background: var(--blue-deep);
             z-index: 25;
-            gap: 24px;
-            backdrop-filter: blur(2px);
+            gap: 20px;
+            backdrop-filter: blur(4px);
         }
 
         #unity-logo {
-            width: 100px;
-            height: 100px;
+            width: 90px;
+            height: 90px;
             background: url("{{ asset('unitygame/TemplateData/unity-logo-dark.png') }}") center/contain no-repeat;
             filter: drop-shadow(0 0 20px var(--gold-glow));
             opacity: 0.9;
+            animation: logoPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes logoPulse {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 15px var(--gold-glow)); }
+            50% { transform: scale(1.05); filter: drop-shadow(0 0 30px var(--gold)); }
         }
 
         .loading-text {
@@ -277,303 +313,85 @@
         }
 
         #unity-progress-bar-empty {
-            width: 320px;
-            height: 14px;
+            width: 300px;
+            max-width: 80vw;
+            height: 12px;
             border: 2px solid var(--gold);
             background: #05080f;
             box-shadow: 0 0 12px var(--gold-glow), inset 0 0 8px rgba(0, 0, 0, 0.8);
             position: relative;
             overflow: hidden;
+            border-radius: 2px;
         }
 
         #unity-progress-bar-full {
             height: 100%;
             width: 0%;
             background: linear-gradient(90deg, #b87c00, var(--gold), #ffdd77);
-            box-shadow: 0 0 6px gold;
+            box-shadow: 0 0 8px gold;
             transition: width 0.2s ease-out;
         }
 
-        /* warning banner */
+        /* Warning banner */
         #unity-warning {
             position: absolute;
-            bottom: 100%;
-            left: 0;
-            right: 0;
+            bottom: 12px;
+            left: 12px;
+            right: 12px;
             z-index: 26;
             font-family: 'Press Start 2P', monospace;
             font-size: 7px;
             pointer-events: none;
         }
 
-        /* footer (fullscreen & build info) */
-        #unity-footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 34px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 16px;
-            background: rgba(9, 13, 30, 0.95);
-            border-top: 1px solid rgba(240, 192, 0, 0.35);
-            backdrop-filter: blur(4px);
-            z-index: 30;
-        }
-
-        #unity-logo-title-footer {
-            width: 20px;
-            height: 20px;
-            background: url("{{ asset('unitygame/TemplateData/unity-logo-dark.png') }}") center/contain no-repeat;
-            opacity: 0.7;
-        }
-
-        #unity-build-title {
-            font-family: 'Press Start 2P', monospace;
-            font-size: 7px;
-            color: var(--text-dim);
-            letter-spacing: 0.1em;
-        }
-
-        #unity-fullscreen-button {
-            width: 22px;
-            height: 22px;
-            cursor: pointer;
-            background: url("{{ asset('unitygame/TemplateData/fullscreen-button.png') }}") center/contain no-repeat;
-            opacity: 0.75;
-            transition: opacity 0.15s, filter 0.1s;
-            filter: sepia(1) saturate(2) hue-rotate(5deg) brightness(1.3);
-        }
-        #unity-fullscreen-button:hover {
-            opacity: 1;
-            filter: drop-shadow(0 0 4px gold);
-        }
-
-        /* Custom cursor (pixel sword/gold) */
-        * {
-            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Crect x='0' y='0' width='4' height='4' fill='%23f0a000'/%3E%3Crect x='0' y='4' width='4' height='4' fill='%23f0a000'/%3E%3Crect x='0' y='8' width='4' height='4' fill='%23f0a000'/%3E%3Crect x='4' y='4' width='4' height='4' fill='%23f0a000'/%3E%3Crect x='8' y='8' width='4' height='4' fill='%23f0a000'/%3E%3C/svg%3E") 0 0, default;
-        }
-
-        /* responsive behavior */
-        @media (max-width: 991px) {
-            #top-bar .realm-title {
-                font-size: 9px;
-            }
-            .logout-btn {
-                padding: 6px 12px;
-                font-size: 7px;
-            }
-        }
-
-        @media (max-width: 780px) {
-            #top-bar {
-                height: 38px;
-                padding: 6px 14px;
-            }
-            #unity-footer {
-                height: 30px;
-                padding: 0 10px;
-            }
-            #game-stage {
-                top: 38px;
-                bottom: 30px;
-            }
-            #unity-progress-bar-empty {
-                max-width: 80vw;
-            }
-        }
-
-        /* ===== MOBILE WARNING OVERLAY - REMOVED ===== */
-        #mobile-warning-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(5, 3, 8, 0.96);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            backdrop-filter: blur(4px);
-        }
-
-        .mobile-warning-box {
-            background: var(--blue-dark);
-            border: 3px solid var(--blue-mid);
-            box-shadow: 0 0 0 1px var(--gold),
-                        0 20px 40px rgba(0, 0, 0, 0.8),
-                        0 0 80px rgba(240, 160, 0, 0.25);
-            padding: 32px 24px;
-            width: 100%;
-            max-width: 420px;
-            position: relative;
-            text-align: center;
-        }
-
-        .mobile-warning-box .corner {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background: var(--gold);
-            z-index: 20;
-            box-shadow: 0 0 4px var(--gold);
-        }
-        .mobile-warning-box .corner.tl { top: -5px; left: -5px; }
-        .mobile-warning-box .corner.tr { top: -5px; right: -5px; }
-        .mobile-warning-box .corner.bl { bottom: -5px; left: -5px; }
-        .mobile-warning-box .corner.br { bottom: -5px; right: -5px; }
-
-        .warning-title {
-            font-family: 'Press Start 2P', monospace;
-            font-size: 10px;
-            color: var(--gold);
-            line-height: 1.6;
-            margin-bottom: 20px;
-            text-shadow: 0 0 8px rgba(240,192,0,0.5);
-        }
-
-        .warning-text {
-            font-size: 18px;
-            color: rgba(180, 200, 255, 0.8);
-            line-height: 1.6;
-            margin-bottom: 28px;
-            letter-spacing: 0.05em;
-        }
-
-        .warning-text b {
-            color: var(--gold);
-        }
-
-        .warning-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .warning-btn {
-            font-family: 'Press Start 2P', monospace;
-            font-size: 9px;
-            padding: 14px 20px;
-            text-decoration: none;
-            border: none;
-            cursor: pointer;
-            box-shadow: 3px 3px 0 var(--gold-dim);
-            transition: all 0.05s steps(2);
-            line-height: 1.4;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        .warning-btn.btn-primary {
-            background: var(--gold);
-            color: #0a0e1a;
-        }
-        .warning-btn.btn-primary:hover {
-            background: #ffe070;
-            box-shadow: 5px 5px 0 var(--gold-dim);
-            transform: translate(-1px, -1px);
-        }
-        .warning-btn.btn-primary:active {
-            transform: translate(2px, 2px);
-            box-shadow: 1px 1px 0 var(--gold-dim);
-        }
-
-        .warning-btn.btn-secondary {
-            background: var(--blue-mid);
-            color: var(--gold);
-            border: 1px solid var(--gold);
-        }
-        .warning-btn.btn-secondary:hover {
-            background: var(--blue-dark);
-            box-shadow: 5px 5px 0 var(--gold-dim);
-            transform: translate(-1px, -1px);
-        }
-        .warning-btn.btn-secondary:active {
-            transform: translate(2px, 2px);
-            box-shadow: 1px 1px 0 var(--gold-dim);
-        }
-
-        /* Mobile warning overlay disabled — game runs on all devices */
-        #mobile-warning-overlay {
-            display: none !important;
-        }
-
-        /* Mobile keyboard helper overlay */
+        /* ===== STREAMLINED COMPACT MOBILE KEYBOARD OVERLAY ===== */
         #mobile-input-bar {
             display: none;
             position: fixed;
-            bottom: 40px;
+            bottom: 12px;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translateX(-50%) translateY(20px);
             width: calc(100% - 24px);
-            max-width: 580px;
-            background: rgba(9, 13, 30, 0.98);
-            border: 2px solid var(--gold);
-            padding: 10px 14px;
+            max-width: 520px;
+            background: rgba(9, 13, 30, 0.94);
+            border: 1.5px solid var(--gold);
+            padding: 8px 12px;
             z-index: 1000;
-            box-shadow: 0 0 25px rgba(0, 0, 0, 0.9), 0 0 12px var(--gold-glow);
-            border-radius: 6px;
-            backdrop-filter: blur(6px);
-            flex-direction: column;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.95), 0 0 15px rgba(240, 192, 0, 0.35);
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+            flex-direction: row;
+            align-items: center;
             gap: 8px;
+            opacity: 0;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease;
+            pointer-events: none;
         }
 
         #mobile-input-bar.active {
             display: flex !important;
-        }
-
-        .mobile-input-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-family: 'Press Start 2P', monospace;
-            font-size: 8px;
-            color: var(--gold);
-            letter-spacing: 0.05em;
-            text-shadow: 0 0 6px var(--gold-glow);
-        }
-
-        .close-input-btn {
-            background: rgba(200, 30, 30, 0.2);
-            border: 1px solid #ff4444;
-            color: #ffaaaa;
-            font-family: 'Press Start 2P', monospace;
-            font-size: 7px;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 2px;
-            transition: all 0.1s;
-        }
-        .close-input-btn:hover {
-            background: #c01020;
-            color: #fff;
-        }
-
-        .mobile-input-row {
-            display: flex;
-            width: 100%;
-            gap: 8px;
-            align-items: center;
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+            pointer-events: auto;
         }
 
         #mobile-text-input {
-            flex-grow: 1;
+            flex: 1;
+            min-width: 0;
             background: #030007;
-            border: 2px solid var(--blue-mid);
+            border: 1.5px solid var(--gold-dim);
             color: var(--gold);
             font-family: 'VT323', monospace;
             font-size: 20px;
-            padding: 6px 12px;
+            padding: 6px 10px;
             outline: none;
-            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.8);
+            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.9);
             border-radius: 4px;
-            text-transform: none;
         }
 
         #mobile-text-input:focus {
             border-color: var(--gold);
-            box-shadow: 0 0 8px var(--gold-glow), inset 0 0 8px rgba(0, 0, 0, 0.8);
+            box-shadow: 0 0 10px rgba(240, 192, 0, 0.5), inset 0 0 8px rgba(0, 0, 0, 0.9);
         }
 
         #mobile-text-input::placeholder {
@@ -583,78 +401,71 @@
 
         .mobile-input-buttons {
             display: flex;
-            gap: 8px;
+            gap: 6px;
+            flex-shrink: 0;
         }
 
         .mobile-helper-btn {
             font-family: 'Press Start 2P', monospace;
             font-size: 8px;
-            padding: 8px 12px;
-            border: none;
+            padding: 8px 10px;
+            border: 1px solid var(--gold);
             cursor: pointer;
-            box-shadow: 2px 2px 0 var(--gold-dim);
-            transition: all 0.05s steps(2);
-            line-height: 1.4;
+            line-height: 1;
             font-weight: bold;
-            text-align: center;
-            border-radius: 2px;
+            border-radius: 4px;
             white-space: nowrap;
+            transition: all 0.1s ease;
         }
 
         .mobile-helper-btn.btn-backspace {
-            background: var(--blue-mid);
+            background: rgba(30, 42, 80, 0.9);
             color: var(--gold);
-            border: 1px solid var(--gold);
         }
 
         .mobile-helper-btn.btn-enter {
             background: var(--gold);
-            color: #0a0e1a;
+            color: #090d1e;
         }
 
-        .keyboard-toggle-btn {
-            background: rgba(240, 192, 0, 0.12);
-            border: 1px solid var(--gold-dim);
-            color: var(--gold);
+        .mobile-helper-btn.btn-close {
+            background: rgba(139, 26, 26, 0.8);
+            color: #ffaaaa;
+            border-color: #ff4444;
+        }
+
+        /* ===== FULLSCREEN TAP PROMPT OVERLAY ===== */
+        #fullscreen-prompt-overlay {
+            display: none;
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 45;
+            background: rgba(9, 13, 30, 0.92);
+            border: 1.5px solid var(--gold);
+            border-radius: 20px;
+            padding: 8px 18px;
             font-family: 'Press Start 2P', monospace;
-            font-size: 7px;
-            padding: 4px 8px;
-            cursor: pointer;
-            border-radius: 2px;
-            box-shadow: 1px 1px 0 var(--gold-dim);
-            transition: all 0.1s;
-        }
-        .keyboard-toggle-btn:hover {
-            background: var(--gold);
-            color: #0a0e1a;
-        }
+            font-size: 8px;
             color: var(--gold);
-            border: 1px solid var(--gold);
+            box-shadow: 0 0 20px rgba(240, 192, 0, 0.4);
+            cursor: pointer;
+            animation: promptPulse 1.5s infinite;
+            backdrop-filter: blur(6px);
         }
 
-        .mobile-helper-btn.btn-backspace:active {
-            transform: translate(2px, 2px);
-            box-shadow: 1px 1px 0 var(--gold-dim);
+        @keyframes promptPulse {
+            0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+            50% { opacity: 0.75; transform: translateX(-50%) scale(0.97); }
         }
-
-        .mobile-helper-btn.btn-enter {
-            background: var(--gold);
-            color: #0a0e1a;
-        }
-
-        .mobile-helper-btn.btn-enter:active {
-            transform: translate(2px, 2px);
-            box-shadow: 1px 1px 0 var(--gold-dim);
-        }
-
-        /* mobile-input-bar removed */
 
         /* ===== PORTRAIT ORIENTATION OVERLAY ===== */
         #portrait-rotate-overlay {
             display: none;
             position: fixed;
             inset: 0;
-            background: #090d1e; /* matches --blue-deep */
+            background: #090d1e;
             z-index: 10005;
             flex-direction: column;
             align-items: center;
@@ -679,6 +490,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            border-radius: 8px;
         }
 
         .rotate-box .corner {
@@ -695,8 +507,8 @@
         .rotate-box .corner.br { bottom: -5px; right: -5px; }
 
         .rotate-icon {
-            font-size: 64px;
-            margin-bottom: 24px;
+            font-size: 54px;
+            margin-bottom: 20px;
             animation: rotatePhone 2.5s ease-in-out infinite;
             filter: drop-shadow(0 0 10px var(--gold));
             line-height: 1;
@@ -710,17 +522,17 @@
 
         .rotate-title {
             font-family: 'Press Start 2P', monospace;
-            font-size: 11px;
+            font-size: 10px;
             color: var(--gold);
             line-height: 1.6;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             text-shadow: 0 0 8px rgba(240,192,0,0.5);
         }
 
         .rotate-text {
-            font-size: 18px;
+            font-size: 17px;
             color: rgba(180, 200, 255, 0.8);
-            line-height: 1.6;
+            line-height: 1.5;
             letter-spacing: 0.05em;
         }
 
@@ -728,10 +540,27 @@
             color: var(--gold);
         }
 
+        /* Custom pixel cursor */
+        * {
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Crect x='0' y='0' width='4' height='4' fill='%23f0a000'/%3E%3Crect x='0' y='4' width='4' height='4' fill='%23f0a000'/%3E%3Crect x='0' y='8' width='4' height='4' fill='%23f0a000'/%3E%3Crect x='4' y='4' width='4' height='4' fill='%23f0a000'/%3E%3Crect x='8' y='8' width='4' height='4' fill='%23f0a000'/%3E%3C/svg%3E") 0 0, default;
+        }
+
         /* Show rotate overlay on mobile (max-width: 991px) when in portrait mode */
         @media (max-width: 991px) and (orientation: portrait) {
             #portrait-rotate-overlay {
                 display: flex;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hud-title-badge span {
+                display: none;
+            }
+            .hud-btn span.btn-label {
+                display: none;
+            }
+            .hud-btn {
+                padding: 7px 9px;
             }
         }
     </style>
@@ -753,31 +582,13 @@
         </div>
     </div>
 
-    <!-- MOBILE WARNING OVERLAY -->
-    <div id="mobile-warning-overlay">
-        <div class="mobile-warning-box">
-            <div class="corner tl"></div>
-            <div class="corner tr"></div>
-            <div class="corner bl"></div>
-            <div class="corner br"></div>
-            <div class="warning-title">⚔️ MOBILE REALM DETECTED ⚔️</div>
-            <p class="warning-text">
-                For the best pixel-perfect combat, audio experience, and gameplay controls, Clash of Subjects is optimized for <b>Desktop / Laptop</b> devices.
-            </p>
-            <div class="warning-actions">
-                <button class="warning-btn btn-primary" onclick="proceedToGame()">CONTINUE ANYWAY</button>
-                <a href="{{ route('student.dashboard') }}" class="warning-btn btn-secondary">BACK TO PORTAL</a>
-            </div>
-        </div>
+    <!-- FULLSCREEN PROMPT OVERLAY -->
+    <div id="fullscreen-prompt-overlay" onclick="toggleFullscreen()">
+        <i class="fas fa-expand"></i> TAP HERE TO ENTER FULLSCREEN ARENA
     </div>
 
-    <!-- pixel background canvas -->
-    <!-- INTERCEPT NETWORK REQUESTS FOR DEBUGGING -->
+    <!-- NETWORK REQUEST INTERCEPTOR -->
     <script>
-        function proceedToGame() {
-            document.getElementById('mobile-warning-overlay').style.setProperty('display', 'none', 'important');
-        }
-
         function redirectGetQuestionUrl(urlStr) {
             if (typeof urlStr === 'string' && urlStr.includes('get_question')) {
                 const qIndex = urlStr.indexOf('?');
@@ -803,27 +614,46 @@
             return originalXHR.call(this, method, url, ...rest);
         };
     </script>
+
+    <!-- ATMOSPHERIC BACKGROUND -->
     <canvas id="bgCanvas"></canvas>
     <div class="scanlines"></div>
     <div class="vignette"></div>
     <div class="embers" id="embers"></div>
 
-    <!-- bats (atmospheric) -->
+    <!-- BATS -->
     <div class="bat-wrap" style="top:8%; animation-duration: 24s; animation-delay: -5s;"><div class="bat-sprite"></div></div>
     <div class="bat-wrap" style="top:16%; animation-duration: 31s; animation-delay: -12s;"><div class="bat-sprite" style="transform: scale(0.7);"></div></div>
     <div class="bat-wrap" style="top:22%; animation-duration: 19s; animation-delay: -2s;"><div class="bat-sprite" style="transform: scale(0.55);"></div></div>
-    <div class="bat-wrap" style="top:5%; animation-duration: 28s; animation-delay: -9s;"><div class="bat-sprite" style="transform: scale(0.6);"></div></div>
 
-    <!-- top bar -->
-    <div id="top-bar">
-        <div class="realm-title">⚔ CLASH OF SUBJECTS ⚔</div>
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <button class="keyboard-toggle-btn" title="Toggle Onscreen / Touch Keyboard" onclick="toggleMobileKeyboard()">⌨ KEYBOARD</button>
-            <a href="{{ route('student.dashboard') }}" class="logout-btn">⛊ BACK TO DASHBOARD ⛊</a>
+    <!-- SLEEK FLOATING HUD -->
+    <div id="hud-container">
+        <div class="hud-group">
+            <a href="{{ route('student.dashboard') }}" class="hud-btn" title="Back to Student Dashboard">
+                <i class="fas fa-arrow-left"></i> <span class="btn-label">DASHBOARD</span>
+            </a>
+            <div class="hud-title-badge">
+                <i class="fas fa-swords" style="color: var(--gold);"></i> <span>CLASH OF SUBJECTS</span>
+            </div>
+        </div>
+
+        <div class="hud-group">
+            <button id="keyboard-toggle-btn" class="hud-btn" title="Toggle Onscreen Keyboard" onclick="toggleMobileKeyboard()">
+                <i class="fas fa-keyboard"></i> <span class="btn-label">KEYBOARD</span>
+            </button>
+            <button id="fit-toggle-btn" class="hud-btn" title="Toggle Aspect Mode (Fit / Stretch)" onclick="toggleFitMode()">
+                <i class="fas fa-compress-alt"></i> <span class="btn-label">FIT</span>
+            </button>
+            <button id="fullscreen-hud-btn" class="hud-btn" title="Toggle Fullscreen Arena" onclick="toggleFullscreen()">
+                <i class="fas fa-expand"></i> <span class="btn-label">FULLSCREEN</span>
+            </button>
+            <button id="hud-minimize-btn" class="hud-btn" title="Hide/Show HUD" onclick="toggleHudVisibility()" style="padding: 7px 9px;">
+                <i class="fas fa-eye-slash"></i>
+            </button>
         </div>
     </div>
 
-    <!-- main game stage (layout fixed) -->
+    <!-- MAIN GAME STAGE (FULLSCREEN ERA) -->
     <div id="game-stage">
         <div id="unity-container" class="unity-frame">
             <div class="unity-top-gold"></div>
@@ -843,41 +673,22 @@
             </div>
             
             <div id="unity-warning"></div>
-            
-            <div id="unity-footer">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <div id="unity-logo-title-footer"></div>
-                    <div id="unity-build-title">⚔ CLASH OF SUBJECTS ⚔</div>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <button class="keyboard-toggle-btn" title="Toggle Touch Keyboard" onclick="toggleMobileKeyboard()">⌨ KEYBOARD</button>
-                    <button id="fit-toggle-btn" title="Toggle Aspect Mode (Fit / Fill Screen)" onclick="toggleFitMode()" style="background: rgba(240, 192, 0, 0.12); border: 1px solid var(--gold-dim); color: var(--gold); font-family: 'Press Start 2P', monospace; font-size: 7px; padding: 4px 8px; cursor: pointer; border-radius: 2px; box-shadow: 1px 1px 0 var(--gold-dim); transition: all 0.1s;">ASPECT: FIT</button>
-                    <div id="unity-fullscreen-button" title="Full Screen"></div>
-                </div>
-            </div>
         </div>
     </div>
 
-    <!-- MOBILE / TOUCH KEYBOARD OVERLAY -->
+    <!-- COMPACT MOBILE KEYBOARD OVERLAY -->
     <div id="mobile-input-bar">
-        <div class="mobile-input-header">
-            <span>⌨ TOUCH KEYBOARD INPUT</span>
-            <button class="close-input-btn" onclick="toggleMobileKeyboard(false)">✖ CLOSE</button>
-        </div>
-        <div class="mobile-input-row">
-            <input type="text" id="mobile-text-input" placeholder="Type Room ID or Player Name..." autocomplete="off" autocapitalize="none" spellcheck="false">
-            <div class="mobile-input-buttons">
-                <button id="mobile-btn-backspace" class="mobile-helper-btn btn-backspace">⌫</button>
-                <button id="mobile-btn-enter" class="mobile-helper-btn btn-enter">↵ ENTER</button>
-            </div>
+        <input type="text" id="mobile-text-input" placeholder="Type Room ID or Player Name..." autocomplete="off" autocapitalize="none" spellcheck="false">
+        <div class="mobile-input-buttons">
+            <button id="mobile-btn-backspace" class="mobile-helper-btn btn-backspace" title="Backspace">⌫</button>
+            <button id="mobile-btn-enter" class="mobile-helper-btn btn-enter" title="Enter">↵</button>
+            <button class="mobile-helper-btn btn-close" onclick="toggleMobileKeyboard(false)" title="Close Keyboard">✖</button>
         </div>
     </div>
-
-
 
     <script>
         /* ============================================================
-           RETRO PIXEL BACKGROUND
+           RETRO PIXEL BACKGROUND CANVAS
            ============================================================ */
         const bgCanvas = document.getElementById('bgCanvas');
         const bgCtx = bgCanvas.getContext('2d');
@@ -892,7 +703,7 @@
             cols = Math.ceil(W / TILE);
             rows = Math.ceil(H / TILE);
             STAR_GRID.length = 0;
-            for (let i = 0; i < 100; i++) {
+            for (let i = 0; i < 90; i++) {
                 STAR_GRID.push({
                     x: Math.floor(Math.random() * cols),
                     y: Math.floor(Math.random() * Math.floor(rows * 0.55)),
@@ -918,7 +729,7 @@
             bgCtx.clearRect(0, 0, W, H);
             const horizonRow = Math.floor(rows * 0.72);
             
-            // sky gradient
+            // Sky gradient
             for (let r = 0; r < horizonRow; r++) {
                 let t = r / horizonRow;
                 let c;
@@ -927,7 +738,7 @@
                 bgCtx.fillStyle = rgb(c);
                 bgCtx.fillRect(0, r * TILE, W, TILE);
             }
-            // ground
+            // Ground
             for (let r = horizonRow; r < rows; r++) {
                 const t = (r - horizonRow) / (rows - horizonRow);
                 const c = lerpColor([10, 6, 2], [4, 2, 0], t);
@@ -935,7 +746,7 @@
                 bgCtx.fillRect(0, r * TILE, W, TILE);
             }
             
-            // mountains
+            // Mountains
             const mtns = [
                 {cx:0.05, h:18}, {cx:0.15, h:22}, {cx:0.28, h:16},
                 {cx:0.40, h:20}, {cx:0.55, h:26}, {cx:0.68, h:19},
@@ -949,120 +760,41 @@
                     const half = Math.floor((dr / m.h) * m.h * 0.7) + 1;
                     bgCtx.fillRect((pc - half) * TILE, (pr + dr) * TILE, half * 2 * TILE, TILE);
                 }
-                bgCtx.fillStyle = 'rgba(200,180,150,0.12)';
-                for (let dr = 0; dr < 3; dr++) {
-                    const half = Math.floor((dr / m.h) * m.h * 0.7) + 1;
-                    bgCtx.fillRect((pc - half) * TILE, (pr + dr) * TILE, half * 2 * TILE, TILE);
-                }
             });
             
-            // castle base
+            // Castle base
             const cx = Math.floor(cols / 2);
             const cb = horizonRow;
             for (let dr = 0; dr < 12; dr++) {
                 bgCtx.fillStyle = dr === 0 ? '#1a0e06' : '#100804';
                 bgCtx.fillRect((cx - 9) * TILE, (cb - dr) * TILE, 18 * TILE, TILE);
             }
-            for (let dr = 0; dr < 6; dr++) {
-                bgCtx.fillStyle = '#030201';
-                const gw = dr < 5 ? 4 : 2;
-                bgCtx.fillRect((cx - gw/2) * TILE, (cb - dr) * TILE, gw * TILE, TILE);
-            }
             
-            // towers
-            const towers = [-10, -5, 0, 5, 10];
-            const tH = [16, 18, 22, 18, 16];
-            towers.forEach((off, i) => {
-                const tx = cx + off;
-                const th = tH[i];
-                for (let dr = 0; dr < th; dr++) {
-                    bgCtx.fillStyle = dr < 2 ? '#1e1208' : '#0c0804';
-                    bgCtx.fillRect((tx - 2) * TILE, (cb - 12 - dr) * TILE, 4 * TILE, TILE);
-                }
-                for (let b = 0; b < 3; b++) {
-                    if (b % 2 === 0) {
-                        bgCtx.fillStyle = '#0c0804';
-                        bgCtx.fillRect((tx - 2 + b) * TILE, (cb - 12 - th - 2) * TILE, TILE, 3 * TILE);
-                    }
-                }
-                // center tower flag
-                if (i === 2) {
-                    const fp = Math.sin(tick * 0.05);
-                    bgCtx.fillStyle = '#8b1a1a';
-                    for (let fr = 0; fr < 4; fr++) {
-                        const fw = Math.round(4 + fp * 1.5) - fr;
-                        if (fw > 0) bgCtx.fillRect(tx * TILE, (cb - 12 - th - 6 + fr) * TILE, fw * TILE, TILE);
-                    }
-                    bgCtx.fillStyle = '#5a3010';
-                    bgCtx.fillRect(tx * TILE - 1, (cb - 12 - th - 6) * TILE, 2, 6 * TILE);
-                }
-                const fl = 0.6 + 0.4 * Math.sin(tick * 0.08 + i * 1.3);
-                bgCtx.fillStyle = `rgba(255,180,40,${0.6 * fl})`;
-                bgCtx.fillRect(tx * TILE, (cb - 12 - Math.floor(th * 0.5)) * TILE, 2 * TILE, 2 * TILE);
-            });
-            
-            // torches
-            [Math.floor(cols * 0.18), Math.floor(cols * 0.82)].forEach(tx => {
-                bgCtx.fillStyle = '#4a2806';
-                bgCtx.fillRect(tx * TILE, (cb - 5) * TILE, TILE, 5 * TILE);
-                const flick = Math.floor(tick * 0.25) % 3;
-                const fc = [[255, 140, 0], [255, 80, 0], [255, 200, 0]][flick];
-                for (let fr = 0; fr < 3; fr++) {
-                    const fw = 3 - fr;
-                    const off2 = fr % 2 === 0 ? 0 : TILE;
-                    bgCtx.fillStyle = `rgba(${fc[0]}, ${fc[1]}, ${fc[2]}, ${0.9 - fr * 0.2})`;
-                    bgCtx.fillRect((tx - fw/2) * TILE + off2, (cb - 5 - fr - 1) * TILE, fw * TILE, TILE);
-                }
-                const grad = bgCtx.createRadialGradient((tx + 0.5) * TILE, (cb - 7) * TILE, 0, (tx + 0.5) * TILE, (cb - 7) * TILE, 8 * TILE);
-                grad.addColorStop(0, 'rgba(255,140,0,0.22)');
-                grad.addColorStop(1, 'rgba(255,100,0,0)');
-                bgCtx.fillStyle = grad;
-                bgCtx.fillRect((tx - 8) * TILE, (cb - 14) * TILE, 16 * TILE, 14 * TILE);
-            });
-            
-            // stars
+            // Stars
             STAR_GRID.forEach(s => {
                 const br = 0.4 + 0.6 * Math.abs(Math.sin(tick * s.speed + s.phase));
                 bgCtx.fillStyle = `rgba(255,250,220,${br})`;
                 if (br > 0.7) {
                     bgCtx.fillRect(s.x * TILE, s.y * TILE, TILE, TILE);
-                    if (br > 0.9) {
-                        bgCtx.fillRect((s.x + 1) * TILE, s.y * TILE, TILE, TILE);
-                        bgCtx.fillRect(s.x * TILE, (s.y + 1) * TILE, TILE, TILE);
-                    }
                 } else {
                     bgCtx.fillRect(s.x * TILE + 2, s.y * TILE + 2, TILE - 4, TILE - 4);
                 }
             });
             
-            // moon
-            const mx = Math.floor(cols * 0.82), my = 4;
-            const moonGlow = 0.7 + 0.3 * Math.sin(tick * 0.03);
-            const moonGrad = bgCtx.createRadialGradient((mx + 3) * TILE, (my + 3) * TILE, 0, (mx + 3) * TILE, (my + 3) * TILE, 10 * TILE);
-            moonGrad.addColorStop(0, `rgba(220,180,60,${0.3 * moonGlow})`);
-            moonGrad.addColorStop(1, 'rgba(200,140,20,0)');
-            bgCtx.fillStyle = moonGrad;
-            bgCtx.fillRect((mx - 7) * TILE, (my - 7) * TILE, 20 * TILE, 20 * TILE);
-            [[1,0,4],[0,1,6],[0,2,6],[0,3,6],[0,4,6],[0,5,6],[1,6,4]].forEach(([ox, oy, w]) => {
-                bgCtx.fillStyle = `rgba(240,210,80,${moonGlow})`;
-                bgCtx.fillRect((mx + ox) * TILE, (my + oy) * TILE, w * TILE, TILE);
-            });
-            
             tick++;
             requestAnimationFrame(drawBackground);
         }
-        
         drawBackground();
-        
+
         /* ========== EMBERS ========== */
         const embersContainer = document.getElementById('embers');
         function spawnEmbers() {
             [15, 48, 82].forEach(pct => {
-                for (let i = 0; i < 12; i++) {
+                for (let i = 0; i < 10; i++) {
                     const e = document.createElement('div');
                     e.className = 'ember';
                     const spread = (Math.random() - 0.5) * 70;
-                    const size = Math.random() > 0.6 ? 6 : 4;
+                    const size = Math.random() > 0.6 ? 5 : 3;
                     e.style.cssText = `left:calc(${pct}% + ${spread}px); top:${65 + Math.random() * 12}%; animation-duration:${1.6 + Math.random() * 3.2}s; animation-delay:${-Math.random() * 6}s; width:${size}px; height:${size}px;`;
                     e.style.setProperty('--ex', (Math.random() - 0.5) * 90 + 'px');
                     e.style.setProperty('--ey', -(45 + Math.random() * 110) + 'px');
@@ -1071,25 +803,19 @@
             });
         }
         spawnEmbers();
-        
-        /* ========== AUTO-FIT GAMEPLAY CANVAS (PHONE, TABLET, PC) ========== */
+
+        /* ============================================================
+           AUTO-FIT GAMEPLAY CANVAS (MAXIMIZED VIEWPORT)
+           ============================================================ */
         let fitMode = 'FIT'; // 'FIT' (preserve aspect ratio) or 'STRETCH'
 
         function fitGameToViewport() {
-            const topBar = document.getElementById('top-bar');
-            const footer = document.getElementById('unity-footer');
             const container = document.getElementById('unity-container');
             const gameStage = document.getElementById('game-stage');
-            if (!container || !topBar || !footer || !gameStage) return;
-
-            const topBarH = topBar.offsetHeight || (window.innerWidth <= 780 ? 38 : 44);
-            const footerH = footer.offsetHeight || (window.innerWidth <= 780 ? 30 : 34);
-
-            gameStage.style.top = topBarH + 'px';
-            gameStage.style.bottom = footerH + 'px';
+            if (!container || !gameStage) return;
 
             const availW = gameStage.clientWidth || window.innerWidth;
-            const availH = gameStage.clientHeight || (window.innerHeight - topBarH - footerH);
+            const availH = gameStage.clientHeight || window.innerHeight;
 
             if (availW <= 0 || availH <= 0) return;
 
@@ -1106,11 +832,9 @@
             let finalW, finalH;
 
             if (currentAspect > targetAspect) {
-                // Screen is wider than 16:10 aspect ratio (e.g. mobile landscape 20:9, ultrawide)
                 finalH = availH;
                 finalW = availH * targetAspect;
             } else {
-                // Screen is taller than 16:10 aspect ratio (e.g. tablet, standard screen)
                 finalW = availW;
                 finalH = availW / targetAspect;
             }
@@ -1122,7 +846,9 @@
         function toggleFitMode() {
             fitMode = (fitMode === 'FIT') ? 'STRETCH' : 'FIT';
             const btn = document.getElementById('fit-toggle-btn');
-            if (btn) btn.innerText = 'ASPECT: ' + fitMode;
+            if (btn) {
+                btn.innerHTML = `<i class="fas fa-${fitMode === 'FIT' ? 'compress-alt' : 'expand-alt'}"></i> <span class="btn-label">${fitMode}</span>`;
+            }
             fitGameToViewport();
         }
 
@@ -1132,8 +858,85 @@
         });
         document.addEventListener('DOMContentLoaded', fitGameToViewport);
         fitGameToViewport();
-        
-        /* ========== UNITY LOADER (RESPONSIVE LAYOUT) ========== */
+
+        /* ============================================================
+           FULLSCREEN LAUNCH CONTROLLER
+           ============================================================ */
+        let globalUnityInstance = null;
+
+        function toggleFullscreen() {
+            if (globalUnityInstance) {
+                globalUnityInstance.SetFullscreen(1);
+                return;
+            }
+
+            const docEl = document.documentElement;
+            const requestFS = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
+            const exitFS = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                if (requestFS) {
+                    requestFS.call(docEl).catch(err => console.log('FS error:', err));
+                }
+            } else {
+                if (exitFS) {
+                    exitFS.call(document).catch(err => console.log('Exit FS error:', err));
+                }
+            }
+        }
+
+        function autoLaunchFullscreen() {
+            const docEl = document.documentElement;
+            const requestFS = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
+            
+            if (requestFS && !document.fullscreenElement && !document.webkitFullscreenElement) {
+                requestFS.call(docEl).then(() => {
+                    const prompt = document.getElementById('fullscreen-prompt-overlay');
+                    if (prompt) prompt.style.display = 'none';
+                }).catch(() => {
+                    // Autoplay blocked fullscreen without interaction - show tap prompt
+                    const prompt = document.getElementById('fullscreen-prompt-overlay');
+                    if (prompt && (window.innerWidth <= 991 || window.navigator.maxTouchPoints > 0)) {
+                        prompt.style.display = 'block';
+                    }
+                });
+            }
+        }
+
+        // Tap screen once to auto-launch fullscreen seamlessly
+        const autoFullscreenHandler = () => {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                autoLaunchFullscreen();
+            }
+            const prompt = document.getElementById('fullscreen-prompt-overlay');
+            if (prompt) prompt.style.display = 'none';
+        };
+        window.addEventListener('click', autoFullscreenHandler, { once: true });
+        window.addEventListener('touchstart', autoFullscreenHandler, { once: true, passive: true });
+
+        /* ============================================================
+           HUD VISIBILITY TOGGLE
+           ============================================================ */
+        let isHudVisible = true;
+        function toggleHudVisibility() {
+            const hud = document.getElementById('hud-container');
+            const minBtn = document.getElementById('hud-minimize-btn');
+            isHudVisible = !isHudVisible;
+
+            if (hud) {
+                if (isHudVisible) {
+                    hud.classList.remove('hidden');
+                    if (minBtn) minBtn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                } else {
+                    hud.classList.add('hidden');
+                    if (minBtn) minBtn.innerHTML = '<i class="fas fa-eye"></i>';
+                }
+            }
+        }
+
+        /* ============================================================
+           UNITY WEBGL LOADER
+           ============================================================ */
         const unityCanvas = document.querySelector("#unity-canvas");
         
         function unityShowBanner(msg, type) {
@@ -1170,8 +973,6 @@
             showBanner: unityShowBanner,
         };
         
-        // Canvas fills the full game-stage via CSS — no fixed sizing needed
-        
         document.querySelector("#unity-loading-bar").style.display = "flex";
         
         const script = document.createElement("script");
@@ -1181,11 +982,12 @@
                 const progressBar = document.querySelector("#unity-progress-bar-full");
                 if (progressBar) progressBar.style.width = (progress * 100) + "%";
             }).then((unityInstance) => {
+                globalUnityInstance = unityInstance;
                 document.querySelector("#unity-loading-bar").style.display = "none";
-                const fullscreenBtn = document.querySelector("#unity-fullscreen-button");
-                if (fullscreenBtn) {
-                    fullscreenBtn.onclick = () => { unityInstance.SetFullscreen(1); };
-                }
+                
+                // Launch fullscreen default on ready
+                autoLaunchFullscreen();
+
             }).catch((err) => {
                 console.warn("Unity error:", err);
                 const loadingDiv = document.querySelector("#unity-loading-bar");
@@ -1195,13 +997,14 @@
             });
         };
         document.body.appendChild(script);
-        
 
-
-        /* ========== MOBILE / TOUCH KEYBOARD BRIDGE ========== */
+        /* ============================================================
+           MOBILE / TOUCH KEYBOARD BRIDGE
+           ============================================================ */
         function toggleMobileKeyboard(forceState) {
             const bar = document.getElementById('mobile-input-bar');
             const input = document.getElementById('mobile-text-input');
+            const kbBtn = document.getElementById('keyboard-toggle-btn');
             if (!bar) return;
 
             const isCurrentlyActive = bar.classList.contains('active');
@@ -1209,6 +1012,7 @@
 
             if (newState) {
                 bar.classList.add('active');
+                if (kbBtn) kbBtn.classList.add('active');
                 if (input) {
                     setTimeout(() => {
                         input.focus();
@@ -1216,6 +1020,7 @@
                 }
             } else {
                 bar.classList.remove('active');
+                if (kbBtn) kbBtn.classList.remove('active');
                 if (input) input.blur();
             }
         }
@@ -1229,7 +1034,6 @@
 
             // Automatically open mobile keyboard overlay on canvas touch / click
             const handleCanvasTouch = () => {
-                // Check if user is on mobile/tablet or touch device
                 const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 991);
                 if (isTouch) {
                     toggleMobileKeyboard(true);
@@ -1242,7 +1046,6 @@
             // Character keyboard event mapping function
             function getKeyCodeAndCode(char) {
                 const upper = char.toUpperCase();
-                
                 let keyCode = upper.charCodeAt(0);
                 let keyEventCode = "Key" + upper;
                 
