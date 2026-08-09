@@ -185,19 +185,15 @@ class TeacherController extends Controller
 
     // ─── GET QUESTION FOR UNITY GAME ─────────────────────────────
     // Called by Unity via GET /api/get_question
-    // Params: class_id, subject, type, quarter, student_id (optional, to avoid repeats)
+    // Params: class_id, subject, type, quarter, sequence_number, answered
     public function getQuestion(Request $request)
     {
         \Log::info('getQuestion hit: ', $request->all());
-        $request->validate([
-            'class_id'        => 'nullable|integer',
-            'subject'         => 'required|string',
-            'type'            => 'nullable|in:quiz,exam,assessment,prototype',
-            'quarter'         => 'nullable|integer|between:1,4',
-            'sequence_number' => 'nullable|integer|min:1',
-        ]);
 
-        $query = DB::table('questions');
+        $subjectInput = strtolower(trim($request->query('subject', 'english')));
+        if (empty($subjectInput)) {
+            $subjectInput = 'english';
+        }
 
         $classId = $request->query('class_id');
         if (empty($classId) && session('user_id')) {
@@ -209,68 +205,108 @@ class TeacherController extends Controller
             }
         }
 
-        if ($classId) {
-            $query->where('class_id', $classId);
-        } else {
-            $query->whereNull('class_id');
-        }
-        
-        $query->where('subject',  strtolower(trim($request->subject)));
-
-        if ($request->filled('type')) {
-            $query->where('type', $request->type);
-        }
-
-        if ($request->filled('quarter')) {
-            $query->where('quarter', $request->quarter);
-        }
-
-        if ($request->filled('sequence_number')) {
-            $query->where('sequence_number', $request->sequence_number);
-        }
-
-        // Count total matching questions before filtering answered
-        $totalQuestionsInPool = (clone $query)->count();
-
-        // Avoid repeating recently-seen questions for this student session
-        // Unity passes answered IDs as a comma-separated string: ?answered=1,2,5
         $answeredIds = [];
         if ($request->filled('answered')) {
             $answeredIds = array_filter(
                 array_map('intval', explode(',', $request->answered))
             );
+        }
+
+        // Multi-level search strategies to locate a question
+        $question = null;
+        $totalQuestionsInPool = 0;
+        $remainingAfterThis = 0;
+        $isPrototype = false;
+
+        // Stage 1: Search by subject + class_id (if present)
+        $stage1Query = DB::table('questions')
+            ->whereRaw('LOWER(subject) = ?', [$subjectInput]);
+
+        if ($classId) {
+            $stage1Query->where(function($q) use ($classId) {
+                $q->where('class_id', $classId)->orWhereNull('class_id');
+            });
+        }
+
+        if ($request->filled('type')) {
+            $stage1Query->where('type', $request->type);
+        }
+
+        $totalQuestionsInPool = (clone $stage1Query)->count();
+        $unansweredQuery = (clone $stage1Query);
+
+        if (!empty($answeredIds)) {
+            $unansweredQuery->whereNotIn('id', $answeredIds);
+        }
+
+        if ($unansweredQuery->count() > 0) {
+            $remainingAfterThis = max(0, $unansweredQuery->count() - 1);
+            $question = $unansweredQuery->inRandomOrder()->first();
+        } elseif ($totalQuestionsInPool > 0) {
+            // Cycle finished for this pool, reset answered filter
+            $question = (clone $stage1Query)->inRandomOrder()->first();
+            $remainingAfterThis = max(0, $totalQuestionsInPool - 1);
+        }
+
+        // Stage 2: Fallback to subject search ignoring class_id & type filters
+        if (!$question) {
+            $stage2Query = DB::table('questions')
+                ->whereRaw('LOWER(subject) = ?', [$subjectInput]);
+
+            $totalQuestionsInPool = (clone $stage2Query)->count();
+            $unansweredStage2 = (clone $stage2Query);
             if (!empty($answeredIds)) {
-                $query->whereNotIn('id', $answeredIds);
+                $unansweredStage2->whereNotIn('id', $answeredIds);
+            }
+
+            if ($unansweredStage2->count() > 0) {
+                $remainingAfterThis = max(0, $unansweredStage2->count() - 1);
+                $question = $unansweredStage2->inRandomOrder()->first();
+            } elseif ($totalQuestionsInPool > 0) {
+                $question = (clone $stage2Query)->inRandomOrder()->first();
+                $remainingAfterThis = max(0, $totalQuestionsInPool - 1);
             }
         }
 
-        $remainingCount = (clone $query)->count();
-        $question = $query->inRandomOrder()->first();
-
-        $isPrototype = false;
-        // If no regular question found, try to fetch a prototype question
+        // Stage 3: Fallback to 'prototype' type questions
         if (!$question) {
-            $prototypeQuery = DB::table('questions')->where('type', 'prototype');
-            $totalQuestionsInPool = (clone $prototypeQuery)->count();
-            
-            if ($request->filled('answered') && !empty($answeredIds)) {
-                $prototypeQuery->whereNotIn('id', $answeredIds);
+            $stage3Query = DB::table('questions')->where('type', 'prototype');
+            $totalQuestionsInPool = (clone $stage3Query)->count();
+            $unansweredStage3 = (clone $stage3Query);
+            if (!empty($answeredIds)) {
+                $unansweredStage3->whereNotIn('id', $answeredIds);
             }
 
-            $remainingCount = (clone $prototypeQuery)->count();
-            $question = $prototypeQuery->inRandomOrder()->first();
-            $isPrototype = true;
+            if ($unansweredStage3->count() > 0) {
+                $remainingAfterThis = max(0, $unansweredStage3->count() - 1);
+                $question = $unansweredStage3->inRandomOrder()->first();
+            } elseif ($totalQuestionsInPool > 0) {
+                $question = (clone $stage3Query)->inRandomOrder()->first();
+                $remainingAfterThis = max(0, $totalQuestionsInPool - 1);
+            }
+            if ($question) {
+                $isPrototype = true;
+            }
+        }
+
+        // Stage 4: Fallback to ANY question in DB
+        if (!$question) {
+            $stage4Query = DB::table('questions');
+            $totalQuestionsInPool = (clone $stage4Query)->count();
+            if ($totalQuestionsInPool > 0) {
+                $question = (clone $stage4Query)->inRandomOrder()->first();
+                $remainingAfterThis = max(0, $totalQuestionsInPool - 1);
+            }
         }
 
         if (!$question) {
             return response()->json([
                 'completed'      => true,
                 'cycle_finished' => true,
-                'error'          => 'No questions found for this class/subject/quarter. Ask your teacher to add questions.',
+                'error'          => 'No questions found in database. Ask your teacher to add questions.',
             ], 404);
         }
 
-        $remainingAfterThis = max(0, $remainingCount - 1);
         $isLast = ($remainingAfterThis === 0);
 
         return response()->json([
@@ -280,7 +316,7 @@ class TeacherController extends Controller
             'B'               => $question->choice_b,
             'C'               => $question->choice_c,
             'D'               => $question->choice_d,
-            'answer'          => $question->answer,
+            'answer'          => strtoupper(trim($question->answer)),
             'is_last'         => $isLast,
             'remaining'       => $remainingAfterThis,
             'total_questions' => $totalQuestionsInPool,

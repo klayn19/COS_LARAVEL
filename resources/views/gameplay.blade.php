@@ -1568,6 +1568,13 @@
             const correct = parseInt(data.correct !== undefined ? data.correct : 0);
             const mistakes = parseInt(data.mistakes !== undefined ? data.mistakes : (data.total ? Math.max(0, data.total - correct) : 0));
             const total = parseInt(data.total !== undefined ? data.total : (correct + mistakes));
+
+            // Prevent displaying empty 0/0 modal
+            if (total <= 0 && !data.force_show) {
+                console.warn('showQuestionResultsModal ignored empty data:', data);
+                return;
+            }
+
             const percent = data.percent !== undefined ? parseFloat(data.percent) : (total > 0 ? Math.round((correct / total) * 100) : 0);
             const highestPercent = data.highest_percent !== undefined ? parseFloat(data.highest_percent) : Math.max(percent, 0);
             const isHighScore = Boolean(data.is_new_high_score || (highestPercent > 0 && percent >= highestPercent));
